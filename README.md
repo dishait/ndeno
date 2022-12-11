@@ -1,32 +1,16 @@
-# deno-starter
+# ndeno
 
-简单的 [deno](https://deno.land/) 项目模板
+Command line tool created by [deno](https://deno.land/) to manage node projects
 
 <br />
 
 ## Usage
 
-> 注意未加任何权限，请前往 [deno.jsonc](deno.jsonc) 手动添加
-
-### start
+### install
 
 ```shell
-deno task start
+deno install -n n https://deno.land/x/ndeno/mod.ts
 ```
-
-### bundle
-
-```shell
-deno task bundle
-```
-
-### compile
-
-```shell
-deno task compile
-```
-
-<br />
 
 ## License
 
