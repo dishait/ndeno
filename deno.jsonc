@@ -1,0 +1,7 @@
+{
+	"tasks": {
+		"start": "deno run src/main.ts",
+		"bundle": "rm -rf dist && mkdir dist && deno bundle src/main.ts dist/main.js",
+		"compile:win": "rm -rf binary && mkdir binary && deno compile src/main.ts && mv src.exe binary/main.exe"
+	}
+}
