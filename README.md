@@ -18,15 +18,7 @@ I hope there is a tool to help me block out npm, yarn and pnpm to manage node pr
 deno install --allow-read --allow-env --allow-run -n n https://deno.land/x/ndeno/mod.ts
 ```
 
-### uinstall
-
-```shell
-deno uninstall n
-```
-
 ### daily
-
-#### install
 
 Automatically determine the package manager of the project, without worrying
 
@@ -40,6 +32,12 @@ n i express # amount to npm install express
 
 ```shell
 n dev # amount to npm run dev
+```
+
+### uinstall
+
+```shell
+deno uninstall n
 ```
 
 <br />
