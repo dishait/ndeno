@@ -1,4 +1,4 @@
-import { execa } from "npm:execa";
+import { execa } from "https://esm.sh/execa@6.1.0";
 import {
   cyan,
   dim,
