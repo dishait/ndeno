@@ -1,4 +1,10 @@
 import { execa } from "npm:execa";
+import {
+  cyan,
+  dim,
+  green,
+  yellow,
+} from "https://deno.land/std@0.167.0/fmt/colors.ts";
 
 type PackageManager = "npm" | "yarn" | "pnpm";
 
@@ -22,7 +28,6 @@ export async function getPackageManager() {
   }
 
   const isPnpm = await exist("pnpm-lock.yaml");
-
   if (isPnpm) {
     return "pnpm";
   }
@@ -43,14 +48,13 @@ export async function getPackageManagerCommand() {
     return [packageManager, "install"];
   }
 
+  // Most manager commands are compatible
   if (packageManager !== "npm") {
     return [packageManager, ...Deno.args];
   }
 
-  const command = Deno.args[0];
-
   // npm run script
-  if (!/run|install|test|publish|uninstall|i/.test(command)) {
+  if (!/run|install|test|publish|uninstall|i/.test(Deno.args[0])) {
     return [packageManager, "run", ...Deno.args];
   }
 
@@ -68,36 +72,47 @@ export function runCmd(cmd: string[]) {
 export async function ensureNodeProjectInit() {
   const inited = await exist("package.json");
   if (inited) {
-    return;
+    return false;
   }
 
   const wantInited = await confirm(
-    "package.json does not exist, whether to initialize？",
+    `🫣 ${yellow("package.json does not exist")}, whether to initialize?`,
   );
 
   if (!wantInited) {
-    return console.log("all right, have a good time!!");
+    console.log(`🥰 all right, ${cyan("have a good time!!")}`);
+    Deno.exit(0);
   }
 
   packageManager = prompt(
-    "Select your package manager (npm | yarn | pnpm)",
+    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
     "npm",
   ) as PackageManager;
 
   const cmd = [packageManager, "init"];
 
   if (packageManager !== "pnpm") {
-    const skipTedious = await confirm("Whether to skip complicated steps?");
+    const skipTedious = await confirm(
+      `👻 Whether to ${green("skip complicated steps")}?`,
+    );
     if (skipTedious) {
       cmd.push("-y");
     }
   }
 
   await runCmd(cmd);
+
+  return true;
 }
 
-await ensureNodeProjectInit();
+const runed = await ensureNodeProjectInit();
+
+if (runed) {
+  console.log(`✅ The project initialization succeeded`);
+}
 
 const cmd = await getPackageManagerCommand();
 
 await runCmd(cmd);
+
+console.log(`✅ Command executed successfully`);
