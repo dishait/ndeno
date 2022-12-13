@@ -4,6 +4,12 @@ Command line tool created by [deno](https://deno.land/) to manage node projects 
 
 <br />
 
+## README
+
+English | [简体中文](./README_CN.md)
+
+<br />
+
 ## Motivation
 
 I hope there is a tool to help me block out npm, yarn and pnpm to manage node projects
