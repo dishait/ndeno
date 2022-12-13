@@ -1,14 +1,10 @@
-import { execa } from "https://esm.sh/execa@6.1.0";
+import { execa as _execa } from "https://esm.sh/execa@6.1.0";
 import {
   cyan,
   dim,
   green,
   yellow,
 } from "https://deno.land/std@0.167.0/fmt/colors.ts";
-
-type PackageManager = "npm" | "yarn" | "pnpm";
-
-let packageManager: PackageManager;
 
 export async function exist(path: string) {
   try {
@@ -22,57 +18,83 @@ export async function exist(path: string) {
   }
 }
 
-export async function getPackageManager() {
-  if (packageManager) {
-    return packageManager;
-  }
-
-  const isPnpm = await exist("pnpm-lock.yaml");
-  if (isPnpm) {
-    return "pnpm";
-  }
-
-  const isYarn = await exist("yarn.lock");
-  if (isYarn) {
-    return "yarn";
-  }
-
-  return "npm";
-}
-
-export async function getPackageManagerCommand() {
-  packageManager = await getPackageManager();
-
-  // install
-  if (Deno.args.length === 0) {
-    return [packageManager, "install"];
-  }
-
-  // Most manager commands are compatible
-  if (packageManager !== "npm") {
-    return [packageManager, ...Deno.args];
-  }
-
-  // npm run script
-  if (!/run|install|test|publish|uninstall|i/.test(Deno.args[0])) {
-    return [packageManager, "run", ...Deno.args];
-  }
-
-  return [packageManager, ...Deno.args];
-}
-
-export function runCmd(cmd: string[]) {
-  const command = cmd.shift();
-  return execa(command!, cmd, {
+export function execa(cmd: string[]) {
+  return _execa(cmd.shift()!, cmd, {
     stderr: "inherit",
     stdout: "inherit",
   });
 }
 
-export async function ensureNodeProjectInit() {
+export function creatLocalStorageRef<T extends string>(key: string) {
+  let v: T;
+  return {
+    get value() {
+      return v ??= localStorage.getItem(key) as T;
+    },
+    set value(nv) {
+      v = nv;
+      localStorage.setItem(key, nv);
+    },
+  };
+}
+
+type PackageManager = "npm" | "yarn" | "pnpm";
+
+export function usePackageManager() {
+  const cwd = Deno.cwd();
+  const ref = creatLocalStorageRef<PackageManager>(cwd);
+
+  async function staging() {
+    if (ref.value) {
+      return;
+    }
+    if (await exist("pnpm-lock.yaml")) {
+      ref.value = "pnpm";
+    } else if (await exist("yarn.lock")) {
+      ref.value = "yarn";
+    } else {
+      ref.value = "npm";
+    }
+  }
+
+  function getCommand() {
+    // install
+    if (Deno.args.length === 0) {
+      return [ref.value, "install"];
+    }
+
+    // Most manager commands are compatible
+    if (ref.value !== "npm") {
+      return [ref.value, ...Deno.args];
+    }
+
+    // npm run script
+    if (
+      !/run|install|test|publish|uninstall||help|remove|i/.test(Deno.args[0])
+    ) {
+      return [ref.value, "run", ...Deno.args];
+    }
+
+    return [ref.value, ...Deno.args];
+  }
+
+  return {
+    ref,
+    staging,
+    getCommand,
+  };
+}
+
+const {
+  staging,
+  getCommand,
+  ref: packageManager,
+} = usePackageManager();
+
+export async function ensureProjectInit() {
   const inited = await exist("package.json");
   if (inited) {
-    return false;
+    return;
   }
 
   const wantInited = await confirm(
@@ -84,14 +106,14 @@ export async function ensureNodeProjectInit() {
     Deno.exit(0);
   }
 
-  packageManager = prompt(
+  packageManager.value = prompt(
     `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
     "npm",
   ) as PackageManager;
 
-  const cmd = [packageManager, "init"];
+  const cmd = [packageManager.value, "init"];
 
-  if (packageManager !== "pnpm") {
+  if (packageManager.value !== "pnpm") {
     const skipTedious = await confirm(
       `👻 Whether to ${green("skip complicated steps")}?`,
     );
@@ -100,19 +122,16 @@ export async function ensureNodeProjectInit() {
     }
   }
 
-  await runCmd(cmd);
-
-  return true;
-}
-
-const runed = await ensureNodeProjectInit();
-
-if (runed) {
+  await execa(cmd);
   console.log(`✅ The project initialization succeeded`);
 }
 
-const cmd = await getPackageManagerCommand();
+async function runCommand() {
+  await staging();
+  await execa(getCommand());
+  console.log(`✅ Command executed successfully`);
+}
 
-await runCmd(cmd);
+await ensureProjectInit();
 
-console.log(`✅ Command executed successfully`);
+await runCommand();
