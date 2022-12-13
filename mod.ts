@@ -58,17 +58,20 @@ export function usePackageManager() {
   }
 
   function getCommand() {
+    const { length } = Deno.args;
     // install
-    if (Deno.args.length === 0) {
+    if (length === 0) {
       return [ref.value, "install"];
     }
 
+    const command = Deno.args[0];
     // Not supported by yarn install
     if (
-      ref.value === "yarn" && Deno.args.length > 1 &&
-      (Deno.args[0] === "i" || Deno.args[0] === "install")
+      ref.value === "yarn" && length > 1 &&
+      (command === "i" || command === "install")
     ) {
-      Deno.args[0] = "add";
+      Deno.args.shift();
+      return [ref.value, "add", ...Deno.args];
     }
 
     // Most manager commands are compatible
@@ -79,7 +82,7 @@ export function usePackageManager() {
     // npm run script
     if (
       !/run|install|test|publish|uninstall|help|add|remove|i/.test(
-        Deno.args[0],
+        command,
       )
     ) {
       return [ref.value, "run", ...Deno.args];
