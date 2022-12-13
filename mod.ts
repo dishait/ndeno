@@ -63,6 +63,14 @@ export function usePackageManager() {
       return [ref.value, "install"];
     }
 
+    // Not supported by yarn install
+    if (
+      ref.value === "yarn" && Deno.args.length > 1 &&
+      (Deno.args[0] === "i" || Deno.args[0] === "install")
+    ) {
+      Deno.args[0] = "add";
+    }
+
     // Most manager commands are compatible
     if (ref.value !== "npm") {
       return [ref.value, ...Deno.args];
@@ -70,7 +78,9 @@ export function usePackageManager() {
 
     // npm run script
     if (
-      !/run|install|test|publish|uninstall||help|remove|i/.test(Deno.args[0])
+      !/run|install|test|publish|uninstall|help|add|remove|i/.test(
+        Deno.args[0],
+      )
     ) {
       return [ref.value, "run", ...Deno.args];
     }
