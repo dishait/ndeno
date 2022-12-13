@@ -22,6 +22,7 @@ export function execa(cmd: string[]) {
   return _execa(cmd.shift()!, cmd, {
     stderr: "inherit",
     stdout: "inherit",
+    stdin: "inherit",
   });
 }
 
@@ -105,6 +106,11 @@ const {
 } = usePackageManager();
 
 export async function ensureProjectInit() {
+  // This will create a project, so initialization is not required
+  if (Deno.args[0] === "create") {
+    return;
+  }
+
   const inited = await exist("package.json");
   if (inited) {
     return;
