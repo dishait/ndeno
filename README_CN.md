@@ -85,4 +85,5 @@ deno install --allow-read --allow-env --allow-run --unstable -rfn n https://deno
 ## License
 
 Made with [markthree](https://github.com/markthree)
+
 Published under [MIT License](https://github.com/dishait/ndeno/blob/main/LICENSE).
