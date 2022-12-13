@@ -209,6 +209,7 @@
     "https://deno.land/std@0.165.0/testing/asserts.ts": "1e340c589853e82e0807629ba31a43c84ebdcdeca910c4a9705715dfdb0f5ce8",
     "https://deno.land/std@0.167.0/fmt/colors.ts": "03ad95e543d2808bc43c17a3dd29d25b43d0f16287fe562a0be89bf632454a12",
     "https://deno.land/x/ndeno@v0.2.1/mod.ts": "ed7a23ac42771bfe548d37591e11a361b8676bd7c5dd01157fac21c9bc09fd75",
+    "https://deno.land/x/ndeno@v0.2.2/mod.ts": "3760409483037d0be29fcc71d10b6baff4115e732941af87e53924e2a949d36d",
     "https://esm.sh/execa@6.1.0": "084f79d2f4f835915b1179ee57f0b7555f0a42f8ea328eeafade18677d4bd8bc",
     "https://esm.sh/v99/@types/node@16.18.3/buffer.d.ts": "bf067c617193ebf82c18c5df5d6cbc79f5f5f7f50d73f106e646f90983d54f9e",
     "https://esm.sh/v99/@types/node@16.18.3/child_process.d.ts": "126afae53b62e41adaedea68dc760ad43a0712e460e117dd50761db4d9dd0398",

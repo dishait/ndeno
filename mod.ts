@@ -65,13 +65,13 @@ export function usePackageManager() {
     }
 
     const command = Deno.args[0];
+
     // Not supported by yarn install
     if (
       ref.value === "yarn" && length > 1 &&
       (command === "i" || command === "install")
     ) {
-      Deno.args.shift();
-      return [ref.value, "add", ...Deno.args];
+      return [ref.value, "add", ...Deno.args.slice(1)];
     }
 
     // Most manager commands are compatible
