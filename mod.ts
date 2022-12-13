@@ -1,4 +1,4 @@
-import { execa as _execa } from "https://esm.sh/execa@6.1.0";
+import { execaSync as _execa } from "https://esm.sh/execa@6.1.0";
 import {
   cyan,
   dim,
@@ -19,7 +19,7 @@ export async function exist(path: string) {
 }
 
 export function execa(cmd: string[]) {
-  return _execa(cmd.shift()!, cmd, {
+  _execa(cmd.shift()!, cmd, {
     stderr: "inherit",
     stdout: "inherit",
     stdin: "inherit",
@@ -105,7 +105,7 @@ const {
   ref: packageManager,
 } = usePackageManager();
 
-export async function hopeCreateProject() {
+export function hopeCreateProject() {
   if (Deno.args[0] !== "create") {
     return false;
   }
@@ -115,7 +115,7 @@ export async function hopeCreateProject() {
     "npm",
   ) as PackageManager;
 
-  await execa(getCommand());
+  execa(getCommand());
 
   console.log(`✅ The project create succeeded`);
 
@@ -125,10 +125,10 @@ export async function hopeCreateProject() {
 export async function ensureProjectInit() {
   const inited = await exist("package.json");
   if (inited) {
-    return;
+    return false;
   }
 
-  const wantInited = await confirm(
+  const wantInited = confirm(
     `🫣 ${yellow("package.json does not exist")}, whether to initialize?`,
   );
 
@@ -145,7 +145,7 @@ export async function ensureProjectInit() {
   const cmd = [packageManager.value, "init"];
 
   if (packageManager.value !== "pnpm") {
-    const skipTedious = await confirm(
+    const skipTedious = confirm(
       `👻 Whether to ${green("skip complicated steps")}?`,
     );
     if (skipTedious) {
@@ -153,19 +153,25 @@ export async function ensureProjectInit() {
     }
   }
 
-  await execa(cmd);
+  execa(cmd);
   console.log(`✅ The project initialization succeeded`);
+
+  return true;
 }
 
 async function runCommand() {
   await staging();
-  await execa(getCommand());
+  execa(getCommand());
   console.log(`✅ Command executed successfully`);
+  return true;
 }
 
-const projectCreated = await hopeCreateProject();
+const tasks = [hopeCreateProject, ensureProjectInit, runCommand];
 
-if (!projectCreated) {
-  await ensureProjectInit();
-  await runCommand();
+for (const task of tasks) {
+  const fusing = await task();
+
+  if (fusing) {
+    break;
+  }
 }
