@@ -105,12 +105,24 @@ const {
   ref: packageManager,
 } = usePackageManager();
 
-export async function ensureProjectInit() {
-  // This will create a project, so initialization is not required
-  if (Deno.args[0] === "create") {
-    return;
+export async function hopeCreateProject() {
+  if (Deno.args[0] !== "create") {
+    return false;
   }
 
+  packageManager.value = prompt(
+    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
+    "npm",
+  ) as PackageManager;
+
+  await execa(getCommand());
+
+  console.log(`✅ The project create succeeded`);
+
+  return true;
+}
+
+export async function ensureProjectInit() {
   const inited = await exist("package.json");
   if (inited) {
     return;
@@ -151,6 +163,9 @@ async function runCommand() {
   console.log(`✅ Command executed successfully`);
 }
 
-await ensureProjectInit();
+const projectCreated = await hopeCreateProject();
 
-await runCommand();
+if (!projectCreated) {
+  await ensureProjectInit();
+  await runCommand();
+}
