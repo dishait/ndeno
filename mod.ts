@@ -105,15 +105,19 @@ const {
   ref: packageManager,
 } = usePackageManager();
 
+function inputPackageManager() {
+  packageManager.value = prompt(
+    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
+    "npm",
+  ) as PackageManager;
+}
+
 export function hopeCreateProject() {
   if (Deno.args[0] !== "create") {
     return false;
   }
 
-  packageManager.value = prompt(
-    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
-    "npm",
-  ) as PackageManager;
+  inputPackageManager();
 
   execa(getCommand());
 
@@ -123,8 +127,8 @@ export function hopeCreateProject() {
 }
 
 export async function ensureProjectInit() {
-  const inited = await exist("package.json");
-  if (inited) {
+  const ignore = Deno.args.length === 0 || await exist("package.json");
+  if (ignore) {
     return false;
   }
 
@@ -137,10 +141,7 @@ export async function ensureProjectInit() {
     Deno.exit(0);
   }
 
-  packageManager.value = prompt(
-    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
-    "npm",
-  ) as PackageManager;
+  inputPackageManager();
 
   const cmd = [packageManager.value, "init"];
 
