@@ -127,7 +127,7 @@ export function hopeCreateProject() {
 }
 
 export async function ensureProjectInit() {
-  const ignore = Deno.args.length === 0 && await exist("package.json");
+  const ignore = Deno.args.length !== 0 || await exist("package.json");
   if (ignore) {
     return false;
   }
