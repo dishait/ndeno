@@ -1,10 +1,10 @@
-import { execaSync as _execa } from "https://esm.sh/execa@6.1.0";
+import { execaSync as _execa } from "npm:execa@6.1.0";
 import {
   cyan,
   dim,
   green,
   yellow,
-} from "https://deno.land/std@0.167.0/fmt/colors.ts";
+} from "https://deno.land/std@0.168.0/fmt/colors.ts";
 
 export async function exist(path: string) {
   try {
@@ -127,7 +127,7 @@ export function hopeCreateProject() {
 }
 
 export async function ensureProjectInit() {
-  const ignore = Deno.args.length === 0 || await exist("package.json");
+  const ignore = Deno.args.length === 0 && await exist("package.json");
   if (ignore) {
     return false;
   }
