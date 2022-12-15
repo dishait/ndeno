@@ -1,4 +1,4 @@
-import { execaSync as _execa } from "npm:execa@6.1.0";
+import { which } from "https://deno.land/x/which@0.2.1/mod.ts";
 import {
   cyan,
   dim,
@@ -18,12 +18,17 @@ export async function exist(path: string) {
   }
 }
 
-export function execa(cmd: string[]) {
-  _execa(cmd.shift()!, cmd, {
+export async function execa(cmd: string[]) {
+  const command = await which(cmd.shift()!);
+
+  const p = Deno.run({
+    cmd: [command!, ...cmd],
+    stdin: "inherit",
     stderr: "inherit",
     stdout: "inherit",
-    stdin: "inherit",
   });
+
+  await p.status();
 }
 
 export function creatLocalStorageRef<T extends string>(key: string) {
@@ -112,14 +117,14 @@ function inputPackageManager() {
   ) as PackageManager;
 }
 
-export function hopeCreateProject() {
+export async function hopeCreateProject() {
   if (Deno.args[0] !== "create") {
     return false;
   }
 
   inputPackageManager();
 
-  execa(getCommand());
+  await execa(getCommand());
 
   console.log(`✅ The project create succeeded`);
 
@@ -154,7 +159,7 @@ export async function ensureProjectInit() {
     }
   }
 
-  execa(cmd);
+  await execa(cmd);
   console.log(`✅ The project initialization succeeded`);
 
   return true;
@@ -162,7 +167,7 @@ export async function ensureProjectInit() {
 
 async function runCommand() {
   await staging();
-  execa(getCommand());
+  await execa(getCommand());
   console.log(`✅ Command executed successfully`);
   return true;
 }
