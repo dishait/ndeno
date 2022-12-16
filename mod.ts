@@ -87,7 +87,7 @@ export function usePackageManager() {
 
     // npm run script
     if (
-      !/run|install|test|publish|uninstall|help|add|remove|i/.test(
+      !/run|install|build|test|publish|uninstall|help|add|remove|i/.test(
         command,
       )
     ) {
