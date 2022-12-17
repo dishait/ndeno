@@ -28,6 +28,13 @@ export async function execa(cmd: string[]) {
     stdout: "inherit",
   });
 
+  // watch ctrl + c
+  Deno.addSignalListener("SIGINT", () => {
+    p.kill("SIGINT");
+    console.log(`❎ The task was manually interrupted`);
+    Deno.exit(0);
+  });
+
   await p.status();
 }
 
