@@ -3,6 +3,7 @@ import {
   cyan,
   dim,
   green,
+  red,
   yellow,
 } from "https://deno.land/std@0.168.0/fmt/colors.ts";
 
@@ -30,12 +31,16 @@ export async function execa(cmd: string[]) {
 
   // watch ctrl + c
   Deno.addSignalListener("SIGINT", () => {
-    p.kill("SIGINT");
-    console.log(`❎ The task was manually interrupted`);
+    console.log(`❎ The task was ${yellow("manually interrupted")}`);
     Deno.exit(0);
   });
 
-  await p.status();
+  const { success, code } = await p.status();
+
+  if (!success) {
+    console.log(`❎ ${red("Task execution failed")}`);
+    Deno.exit(code);
+  }
 }
 
 export function creatLocalStorageRef<T extends string>(key: string) {
@@ -94,7 +99,7 @@ export function usePackageManager() {
 
     // npm run script
     if (
-      !/run|install|build|test|publish|uninstall|help|add|remove|i/.test(
+      !/run|install|test|publish|uninstall|help|add|remove|i/.test(
         command,
       )
     ) {
