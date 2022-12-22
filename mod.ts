@@ -5,7 +5,13 @@ import {
   green,
   red,
   yellow,
-} from "https://deno.land/std@0.168.0/fmt/colors.ts";
+} from "https://deno.land/std@0.170.0/fmt/colors.ts";
+
+// watch ctrl + c
+Deno.addSignalListener("SIGINT", () => {
+  console.log(`❎ The task was ${yellow("manually interrupted")}`);
+  Deno.exit(0);
+});
 
 export async function exist(path: string) {
   try {
@@ -27,12 +33,6 @@ export async function execa(cmd: string[]) {
     stdin: "inherit",
     stderr: "inherit",
     stdout: "inherit",
-  });
-
-  // watch ctrl + c
-  Deno.addSignalListener("SIGINT", () => {
-    console.log(`❎ The task was ${yellow("manually interrupted")}`);
-    Deno.exit(0);
   });
 
   const { success, code } = await p.status();
