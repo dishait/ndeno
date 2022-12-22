@@ -97,11 +97,15 @@ export function usePackageManager() {
       return [ref.value, ...Deno.args];
     }
 
+    const isRunScript =
+      !/^(run|install|test|publish|uninstall|help|add|remove|i)$/
+        .test(
+          command,
+        );
+
     // npm run script
     if (
-      !/run|install|test|publish|uninstall|help|add|remove|i/.test(
-        command,
-      )
+      isRunScript
     ) {
       return [ref.value, "run", ...Deno.args];
     }
