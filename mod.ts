@@ -10,7 +10,7 @@ import {
 // watch ctrl + c
 Deno.addSignalListener("SIGINT", () => {
   console.log(`❎ The task was ${yellow("manually interrupted")}`);
-  Deno.exit(0);
+  Deno.exit(128 + 2);
 });
 
 export async function exist(path: string) {
