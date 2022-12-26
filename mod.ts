@@ -37,6 +37,8 @@ export async function execa(cmd: string[]) {
 
   const { success, code } = await p.status();
 
+  p.close()
+
   if (!success) {
     console.log(`❎ ${red("Task execution failed")}`);
     Deno.exit(code);
