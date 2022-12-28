@@ -1,5 +1,11 @@
-import { which } from "which";
-import { cyan, dim, green, red, yellow } from "colors";
+import { which } from "https://deno.land/x/which@0.2.1/mod.ts";
+import {
+  cyan,
+  dim,
+  green,
+  red,
+  yellow,
+} from "https://deno.land/std@0.170.0/fmt/colors.ts";
 
 // watch ctrl + c
 Deno.addSignalListener("SIGINT", () => {

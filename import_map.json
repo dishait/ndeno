@@ -1,7 +1,0 @@
-{
-    "imports": {
-        "which": "https://deno.land/x/which@0.2.1/mod.ts",
-        "colors": "https://deno.land/std@0.170.0/fmt/colors.ts"
-    },
-    "scopes": {}
-}

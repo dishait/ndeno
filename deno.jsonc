@@ -1,5 +1,4 @@
 {
-	"importMap": "./import_map.json",
 	"tasks": {
 		"start": "deno run src/main.ts",
 		"bundle": "rm -rf dist && mkdir dist && deno bundle mod.ts dist/main.js"
