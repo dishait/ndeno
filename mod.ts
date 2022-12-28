@@ -1,11 +1,5 @@
-import { which } from "https://deno.land/x/which@0.2.1/mod.ts";
-import {
-  cyan,
-  dim,
-  green,
-  red,
-  yellow,
-} from "https://deno.land/std@0.170.0/fmt/colors.ts";
+import { which } from "which";
+import { cyan, dim, green, red, yellow } from "colors";
 
 // watch ctrl + c
 Deno.addSignalListener("SIGINT", () => {
@@ -37,7 +31,7 @@ export async function execa(cmd: string[]) {
 
   const { success, code } = await p.status();
 
-  p.close()
+  p.close();
 
   if (!success) {
     console.log(`❎ ${red("Task execution failed")}`);
