@@ -7,6 +7,11 @@ Deno.addSignalListener("SIGINT", () => {
   Deno.exit(128 + 2);
 });
 
+function normalFusing() {
+  console.log(`🥰 all right, ${cyan("have a good time!!")}`);
+  Deno.exit(0);
+}
+
 export async function exist(path: string) {
   try {
     await Deno.stat(path);
@@ -154,8 +159,7 @@ export async function ensureProjectInit() {
   );
 
   if (!wantInited) {
-    console.log(`🥰 all right, ${cyan("have a good time!!")}`);
-    Deno.exit(0);
+    normalFusing();
   }
 
   inputPackageManager();
@@ -184,7 +188,35 @@ async function runCommand() {
   return true;
 }
 
-const tasks = [hopeCreateProject, ensureProjectInit, runCommand];
+function refresh() {
+  if (Deno.args[0] === "refresh") {
+    const wantRefresh = confirm(
+      `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
+    );
+
+    if (!wantRefresh) {
+      normalFusing();
+    }
+
+    inputPackageManager();
+
+    return here(true);
+  }
+}
+
+function here(see = Deno.args[0] === "here") {
+  if (see) {
+    console.log(
+      `🦖 The manager of the current directory is ${
+        cyan(packageManager.value)
+      }`,
+    );
+  }
+
+  return see;
+}
+
+const tasks = [hopeCreateProject, refresh, here, ensureProjectInit, runCommand];
 
 for (const task of tasks) {
   const fusing = await task();
