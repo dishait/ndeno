@@ -7,9 +7,12 @@ import {
   yellow,
 } from "https://deno.land/std@0.170.0/fmt/colors.ts";
 
+let process: Deno.Process;
+
 // watch ctrl + c
 Deno.addSignalListener("SIGINT", () => {
   console.log(`❎ The task was ${yellow("manually interrupted")}`);
+  Deno.kill(process.pid);
   Deno.exit(128 + 2);
 });
 
@@ -33,16 +36,16 @@ export async function exist(path: string) {
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!);
 
-  const p = Deno.run({
+  process = Deno.run({
     cmd: [command!, ...cmd],
     stdin: "inherit",
     stderr: "inherit",
     stdout: "inherit",
   });
 
-  const { success, code } = await p.status();
+  const { success, code } = await process.status();
 
-  p.close();
+  process.close();
 
   if (!success) {
     console.log(`❎ ${red("Task execution failed")}`);
