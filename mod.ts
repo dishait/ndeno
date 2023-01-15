@@ -13,6 +13,7 @@ let process: Deno.Process;
 Deno.addSignalListener("SIGINT", () => {
   console.log(`❎ The task was ${yellow("manually interrupted")}`);
   Deno.kill(process.pid);
+  Deno.close(process.rid);
   Deno.exit(128 + 2);
 });
 
