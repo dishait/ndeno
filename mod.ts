@@ -5,7 +5,7 @@ import {
   green,
   red,
   yellow,
-} from "https://deno.land/std@0.170.0/fmt/colors.ts";
+} from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
 let process: Deno.Process;
 
@@ -68,6 +68,17 @@ export function creatLocalStorageRef<T extends string>(key: string) {
 }
 
 type PackageManager = "npm" | "yarn" | "pnpm";
+
+function isPackageManager(v: string): v is PackageManager {
+  switch (v) {
+    case "npm":
+    case "yarn":
+    case "pnpm":
+      return true;
+    default:
+      return false;
+  }
+}
 
 export function usePackageManager() {
   const cwd = Deno.cwd();
@@ -200,6 +211,11 @@ async function runCommand() {
 
 function refresh() {
   if (Deno.args[0] === "refresh") {
+    if (isPackageManager(Deno.args[1])) {
+      packageManager.value = Deno.args[1];
+      return here(true);
+    }
+
     const wantRefresh = confirm(
       `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
     );
@@ -218,7 +234,7 @@ function here(see = Deno.args[0] === "here") {
   if (see) {
     console.log(
       `🦖 The manager of the current directory is ${
-        cyan(packageManager.value)
+        cyan(packageManager.value ?? "null")
       }`,
     );
   }
