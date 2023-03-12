@@ -19,7 +19,7 @@ export function uniqueDeps(...depsArray: string[][]) {
 
 export function extractSpecifier(code: string) {
   return code.match(
-    /(?<=(import\(|require\(|from\s+)["']).*(?=["'])/g,
+    /(?<=((require|import)\(|(from|import)\s+)["']).*(?=["'])/g,
   ) || [];
 }
 
