@@ -1,7 +1,9 @@
+import { exist } from "./fs.ts";
 import { builtinModules as _builtinModules } from "node:module";
 import { walk } from "https://deno.land/std@0.179.0/fs/walk.ts";
+import { join } from "https://deno.land/std@0.179.0/path/mod.ts";
 
-const builtinModules = [
+export const builtinModules = [
   "module",
   "node:module",
   ..._builtinModules,
@@ -10,6 +12,10 @@ const builtinModules = [
 
 export function isBuiltin(specifier: string) {
   return builtinModules.includes(specifier);
+}
+
+export function uniqueDeps(...depsArray: string[][]) {
+  return Array.from(new Set(depsArray.flat()));
 }
 
 export function extractSpecifier(code: string) {
@@ -54,5 +60,21 @@ export async function extractDeps(path: string) {
     filterDeps(extractSpecifier(eliminateComments(code)))
   );
 
-  return Array.from(new Set(deps.flat()));
+  return uniqueDeps(...deps);
+}
+
+export async function extractDepsFromPackageJson(path: string) {
+  const packageJson = join(path, "package.json");
+  if (!exist(packageJson)) {
+    return [];
+  }
+  const packageJsonText = await Deno.readTextFile(packageJson);
+
+  const packageJsonObject = JSON.parse(packageJsonText);
+
+  const devDeps = Object.keys(packageJsonObject["devDependencies"] ?? {});
+
+  const deps = Object.keys(packageJsonObject["dependencies"] ?? {});
+
+  return uniqueDeps(deps, devDeps);
 }

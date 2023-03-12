@@ -6,11 +6,11 @@ import {
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
 import { exist } from "./src/fs.ts";
-import { extractDeps } from "./src/deps.ts";
+import { listLog } from "./src/log.ts";
 import type { PackageManager } from "./src/pm.ts";
 import { execa, normalFusing } from "./src/process.ts";
 import { isPackageManager, usePackageManager } from "./src/pm.ts";
-import { listLog } from "./src/log.ts";
+import { extractDeps, extractDepsFromPackageJson } from "./src/deps.ts";
 
 const {
   staging,
@@ -130,29 +130,63 @@ async function autoInstall(
   auto = Deno.args[0] === "i" && Deno.args[1] === "-a",
 ) {
   if (auto) {
-    console.log(
-      `🌳 The deps is detected`,
+    const base = Deno.cwd();
+    const depsInPackageJson = await extractDepsFromPackageJson(base);
+
+    const deps = await extractDeps(base);
+
+    const depsNotInPackageJson = deps.filter((dep) =>
+      !depsInPackageJson.includes(dep)
     );
 
-    const deps = await extractDeps(Deno.cwd());
-    console.log(listLog(deps));
+    if (depsNotInPackageJson.length) {
+      console.log(
+        `📂 The deps is detected from ${yellow("files")}`,
+      );
+      console.log(listLog(depsNotInPackageJson));
 
-    const wantInstall = auto = confirm(
-      `🦕 Whether to ${
-        green(
-          "install",
-        )
-      }?`,
-    );
+      const wantInstallDepsNotInPackageJson = confirm(
+        `📂 Whether to install from ${
+          yellow(
+            "files",
+          )
+        } ?`,
+      );
 
-    if (wantInstall) {
-      await execa([
-        packageManager.value ?? "npm",
-        packageManager.value === "yarn" ? "add" : "install",
-        ...deps,
-      ]);
-      console.log(`✅ Automatic install successfully`);
+      if (wantInstallDepsNotInPackageJson) {
+        await execa([
+          packageManager.value ?? "npm",
+          packageManager.value === "yarn" ? "add" : "install",
+          ...depsNotInPackageJson,
+        ]);
+      }
     }
+
+    if (depsInPackageJson.length) {
+      console.log(
+        `🌳 The deps is detected from ${green("package.json")}`,
+      );
+      console.log(listLog(depsInPackageJson));
+
+      const wantInstallDepsInPackageJson = confirm(
+        `🌳 Whether to install deps from ${
+          green(
+            "package.json",
+          )
+        } ?`,
+      );
+
+      if (wantInstallDepsInPackageJson) {
+        await execa([
+          packageManager.value ?? "npm",
+          packageManager.value === "yarn" ? "add" : "install",
+          ...depsInPackageJson.filter((dep) =>
+            !depsNotInPackageJson.includes(dep)
+          ),
+        ]);
+      }
+    }
+    console.log(`✅ Automatic install successfully`);
   }
   return auto;
 }
