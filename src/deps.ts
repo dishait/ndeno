@@ -31,8 +31,14 @@ export function eliminateComments(code: string) {
 export function filterDeps(specifiers: string[]) {
   return specifiers.filter((specifier) =>
     !specifier.startsWith(".") && !isBuiltin(specifier) &&
-    !specifier.startsWith("node:")
-  ).map((specifier) => specifier.replace(/\/.*/, ""));
+    !specifier.startsWith("node:") && !specifier.startsWith("#")
+  ).map((specifier) => {
+    if (specifier.startsWith("@")) {
+      const [organization, pkg] = specifier.split("/");
+      return `${organization}/${pkg}`;
+    }
+    return specifier.replace(/\/.*/, "");
+  });
 }
 
 export async function readCodes(path: string) {
@@ -41,7 +47,7 @@ export async function readCodes(path: string) {
     includeDirs: false,
     followSymlinks: true,
     exts: [".ts", ".js", ".tsx", ".jsx", ".vue"],
-    skip: [/node_modules/g, /dist/g, /output/g, /.nuxt/g],
+    skip: [/node_modules/g, /dist/g, /.output/g, /.nuxt/g],
   };
   const codes: string[] = [];
 
@@ -65,7 +71,7 @@ export async function extractDeps(path: string) {
 
 export async function extractDepsFromPackageJson(path: string) {
   const packageJson = join(path, "package.json");
-  if (!exist(packageJson)) {
+  if (!await exist(packageJson)) {
     return [];
   }
   const packageJsonText = await Deno.readTextFile(packageJson);
