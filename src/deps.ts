@@ -1,0 +1,58 @@
+import { builtinModules as _builtinModules } from "node:module";
+import { walk } from "https://deno.land/std@0.179.0/fs/walk.ts";
+
+const builtinModules = [
+  "module",
+  "node:module",
+  ..._builtinModules,
+  ..._builtinModules.map((m: string) => `node:${m}`),
+];
+
+export function isBuiltin(specifier: string) {
+  return builtinModules.includes(specifier);
+}
+
+export function extractSpecifier(code: string) {
+  return code.match(
+    /(?<=(import\(|require\(|from\s+)["']).*(?=["'])/g,
+  ) || [];
+}
+
+export function eliminateComments(code: string) {
+  return code.replace(/\/\/.*/g, "").replace(/\/\*.*?\*\//g, "");
+}
+
+export function filterDeps(specifiers: string[]) {
+  return specifiers.filter((specifier) =>
+    !specifier.startsWith(".") && !isBuiltin(specifier) &&
+    !specifier.startsWith("node:")
+  ).map((specifier) => specifier.replace(/\/.*/, ""));
+}
+
+export async function readCodes(path: string) {
+  const options = {
+    includeFiles: true,
+    includeDirs: false,
+    followSymlinks: true,
+    exts: [".ts", ".js", ".tsx", ".jsx", ".vue"],
+    skip: [/node_modules/g, /dist/g, /output/g, /.nuxt/g],
+  };
+  const codes: string[] = [];
+
+  for await (const entry of walk(path, options)) {
+    const code = await Deno.readTextFile(entry.path);
+    codes.push(code);
+  }
+
+  return codes;
+}
+
+export async function extractDeps(path: string) {
+  const codes = await readCodes(path);
+
+  const deps = codes.map((code) =>
+    filterDeps(extractSpecifier(eliminateComments(code)))
+  );
+
+  return Array.from(new Set(deps.flat()));
+}

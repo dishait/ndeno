@@ -6,9 +6,11 @@ import {
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
 import { exist } from "./src/fs.ts";
+import { extractDeps } from "./src/deps.ts";
 import type { PackageManager } from "./src/pm.ts";
 import { execa, normalFusing } from "./src/process.ts";
 import { isPackageManager, usePackageManager } from "./src/pm.ts";
+import { listLog } from "./src/log.ts";
 
 const {
   staging,
@@ -124,11 +126,43 @@ function here(see = Deno.args[0] === "here") {
   return see;
 }
 
+async function autoInstall(
+  auto = Deno.args[0] === "i" && Deno.args[1] === "-a",
+) {
+  if (auto) {
+    console.log(
+      `🌳 The deps is detected`,
+    );
+
+    const deps = await extractDeps(Deno.cwd());
+    console.log(listLog(deps));
+
+    const wantInstall = auto = confirm(
+      `🦕 Whether to ${
+        green(
+          "install",
+        )
+      }?`,
+    );
+
+    if (wantInstall) {
+      await execa([
+        packageManager.value ?? "npm",
+        packageManager.value === "yarn" ? "add" : "install",
+        ...deps,
+      ]);
+      console.log(`✅ Automatic install successfully`);
+    }
+  }
+  return auto;
+}
+
 const tasks = [
   hopeCreateProject,
   refresh,
   here,
   ensureProjectInit,
+  autoInstall,
   runCommand,
 ];
 
