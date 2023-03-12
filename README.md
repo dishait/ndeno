@@ -29,15 +29,27 @@ deno install --allow-read --allow-env --allow-run --unstable -rfn n https://deno
 Automatically determine the package manager of the project, without worrying
 
 ```shell
-n # amount to npm install
+n # Amount to npm install
 ```
 
 ```shell
-n i express # amount to npm install express
+n i express # Amount to npm install express
 ```
 
 ```shell
-n dev # amount to npm run dev
+n i -a # Automatically deep file dependencies and install
+```
+
+```shell
+n dev # Amount to npm run dev
+```
+
+```shell
+n here # Detect the project manager of the current directory
+```
+
+```shell
+n refresh pnpm # Switch package manager to pnpm
 ```
 
 ### uinstall
