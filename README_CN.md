@@ -72,16 +72,6 @@ n dev # 等价于 npm run dev，或者 yarn dev 或者 pnpm dev
 deno install --allow-read --allow-env --allow-run --unstable -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
-### 原因
-
-为什么选择 [deno](https://deno.land/)，而非 [nodejs](https://nodejs.org) 呢?
-
-**无他，足够简单**
-
-感兴趣可以了解实现，有且仅有一个文件 👉 [ndeno/mod.ts](https://github.com/dishait/ndeno/blob/main/mod.ts)
-
-<br />
-
 ## License
 
 Made with [markthree](https://github.com/markthree)

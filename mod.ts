@@ -1,146 +1,14 @@
-import { which } from "https://deno.land/x/which@0.2.1/mod.ts";
 import {
   cyan,
   dim,
   green,
-  red,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
-let process: Deno.Process;
-
-// watch ctrl + c
-Deno.addSignalListener("SIGINT", () => {
-  console.log(`❎ The task was ${yellow("manually interrupted")}`);
-  Deno.kill(process.pid);
-  Deno.close(process.rid);
-  Deno.exit(128 + 2);
-});
-
-function normalFusing() {
-  console.log(`🥰 all right, ${cyan("have a good time!!")}`);
-  Deno.exit(0);
-}
-
-export async function exist(path: string) {
-  try {
-    await Deno.stat(path);
-    return true;
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return false;
-    }
-    throw error;
-  }
-}
-
-export async function execa(cmd: string[]) {
-  const command = await which(cmd.shift()!);
-
-  process = Deno.run({
-    cmd: [command!, ...cmd],
-    stdin: "inherit",
-    stderr: "inherit",
-    stdout: "inherit",
-  });
-
-  const { success, code } = await process.status();
-
-  process.close();
-
-  if (!success) {
-    console.log(`❎ ${red("Task execution failed")}`);
-    Deno.exit(code);
-  }
-}
-
-export function creatLocalStorageRef<T extends string>(key: string) {
-  let v: T;
-  return {
-    get value() {
-      return v ??= localStorage.getItem(key) as T;
-    },
-    set value(nv) {
-      v = nv;
-      localStorage.setItem(key, nv);
-    },
-  };
-}
-
-type PackageManager = "npm" | "yarn" | "pnpm";
-
-function isPackageManager(v: string): v is PackageManager {
-  switch (v) {
-    case "npm":
-    case "yarn":
-    case "pnpm":
-      return true;
-    default:
-      return false;
-  }
-}
-
-export function usePackageManager() {
-  const cwd = Deno.cwd();
-  const ref = creatLocalStorageRef<PackageManager>(cwd);
-
-  async function staging() {
-    if (ref.value) {
-      return;
-    }
-    if (await exist("pnpm-lock.yaml")) {
-      ref.value = "pnpm";
-    } else if (await exist("yarn.lock")) {
-      ref.value = "yarn";
-    } else {
-      ref.value = "npm";
-    }
-  }
-
-  function getCommand() {
-    const { length } = Deno.args;
-    // install
-    if (length === 0) {
-      return [ref.value, "install"];
-    }
-
-    const command = Deno.args[0];
-
-    // Not supported by yarn install
-    if (
-      ref.value === "yarn" && length > 1 &&
-      (command === "i" || command === "install")
-    ) {
-      return [ref.value, "add", ...Deno.args.slice(1)];
-    }
-
-    // Most manager commands are compatible
-    if (ref.value !== "npm") {
-      return [ref.value, ...Deno.args];
-    }
-
-    const isRunScript =
-      !/^(run|install|test|publish|uninstall|help|add|remove|i)$/
-        .test(
-          command,
-        );
-
-    // npm run script
-    if (
-      isRunScript
-    ) {
-      return [ref.value, "run", ...Deno.args];
-    }
-
-    return [ref.value, ...Deno.args];
-  }
-
-  return {
-    ref,
-    staging,
-    getCommand,
-  };
-}
+import { exist } from "./src/fs.ts";
+import type { PackageManager } from "./src/pm.ts";
+import { execa, normalFusing } from "./src/process.ts";
+import { isPackageManager, usePackageManager } from "./src/pm.ts";
 
 const {
   staging,
@@ -150,7 +18,11 @@ const {
 
 function inputPackageManager() {
   packageManager.value = prompt(
-    `🤯 Input your package manager ${dim("(npm | yarn | pnpm)")}`,
+    `🤯 Input your package manager ${
+      dim(
+        "(npm | yarn | pnpm)",
+      )
+    }`,
     "npm",
   ) as PackageManager;
 }
@@ -170,13 +42,17 @@ export async function hopeCreateProject() {
 }
 
 export async function ensureProjectInit() {
-  const ignore = Deno.args.length !== 0 || await exist("package.json");
+  const ignore = Deno.args.length !== 0 || (await exist("package.json"));
   if (ignore) {
     return false;
   }
 
   const wantInited = confirm(
-    `🫣 ${yellow("package.json does not exist")}, whether to initialize?`,
+    `🫣 ${
+      yellow(
+        "package.json does not exist",
+      )
+    }, whether to initialize?`,
   );
 
   if (!wantInited) {
@@ -217,7 +93,11 @@ function refresh() {
     }
 
     const wantRefresh = confirm(
-      `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
+      `🙄 Do you want to refresh the package manager ${
+        green(
+          "in the cache",
+        )
+      }?`,
     );
 
     if (!wantRefresh) {
@@ -234,7 +114,9 @@ function here(see = Deno.args[0] === "here") {
   if (see) {
     console.log(
       `🦖 The manager of the current directory is ${
-        cyan(packageManager.value ?? "null")
+        cyan(
+          packageManager.value ?? "null",
+        )
       }`,
     );
   }
@@ -242,7 +124,13 @@ function here(see = Deno.args[0] === "here") {
   return see;
 }
 
-const tasks = [hopeCreateProject, refresh, here, ensureProjectInit, runCommand];
+const tasks = [
+  hopeCreateProject,
+  refresh,
+  here,
+  ensureProjectInit,
+  runCommand,
+];
 
 for (const task of tasks) {
   const fusing = await task();
