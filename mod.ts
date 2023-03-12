@@ -5,10 +5,11 @@ import {
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
-import { exist } from "./src/fs.ts";
+import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
 import { listLog } from "./src/log.ts";
 import type { PackageManager } from "./src/pm.ts";
 import { execa, normalFusing } from "./src/process.ts";
+import { join } from "https://deno.land/std@0.179.0/path/mod.ts";
 import { isPackageManager, usePackageManager } from "./src/pm.ts";
 import { extractDeps, extractDepsFromPackageJson } from "./src/deps.ts";
 
@@ -131,7 +132,18 @@ async function autoInstall(
 ) {
   if (auto) {
     const base = Deno.cwd();
-    const depsInPackageJson = await extractDepsFromPackageJson(base);
+    const packageJsonPath = await findUpPackageJson(base) || "";
+    const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath);
+
+    const nodeModulesPath = await findUpNodeModules(base) || "";
+
+    const depsNotInstalled =
+      (await Promise.all(depsInPackageJson.map(async (dep) => {
+        return {
+          name: dep,
+          exist: await exist(join(nodeModulesPath, dep)),
+        };
+      }))).filter((dep) => !dep.exist).map((dep) => dep.name);
 
     const deps = await extractDeps(base);
 
@@ -162,7 +174,7 @@ async function autoInstall(
       }
     }
 
-    if (depsInPackageJson.length) {
+    if (depsNotInstalled.length) {
       console.log(
         `🌳 The deps is detected from ${green("package.json")}`,
       );
@@ -180,9 +192,7 @@ async function autoInstall(
         await execa([
           packageManager.value ?? "npm",
           packageManager.value === "yarn" ? "add" : "install",
-          ...depsInPackageJson.filter((dep) =>
-            !depsNotInPackageJson.includes(dep)
-          ),
+          ...depsNotInstalled,
         ]);
       }
     }

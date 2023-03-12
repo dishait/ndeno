@@ -1,7 +1,6 @@
 import { exist } from "./fs.ts";
 import { builtinModules as _builtinModules } from "node:module";
 import { walk } from "https://deno.land/std@0.179.0/fs/walk.ts";
-import { join } from "https://deno.land/std@0.179.0/path/mod.ts";
 
 export const builtinModules = [
   "module",
@@ -41,7 +40,7 @@ export function filterDeps(specifiers: string[]) {
   });
 }
 
-export async function readCodes(path: string) {
+export async function readCodes(base: string) {
   const options = {
     includeFiles: true,
     includeDirs: false,
@@ -51,7 +50,7 @@ export async function readCodes(path: string) {
   };
   const codes: string[] = [];
 
-  for await (const entry of walk(path, options)) {
+  for await (const entry of walk(base, options)) {
     const code = await Deno.readTextFile(entry.path);
     codes.push(code);
   }
@@ -59,8 +58,8 @@ export async function readCodes(path: string) {
   return codes;
 }
 
-export async function extractDeps(path: string) {
-  const codes = await readCodes(path);
+export async function extractDeps(base: string) {
+  const codes = await readCodes(base);
 
   const deps = codes.map((code) =>
     filterDeps(extractSpecifier(eliminateComments(code)))
@@ -69,12 +68,11 @@ export async function extractDeps(path: string) {
   return uniqueDeps(...deps);
 }
 
-export async function extractDepsFromPackageJson(path: string) {
-  const packageJson = join(path, "package.json");
-  if (!await exist(packageJson)) {
+export async function extractDepsFromPackageJson(packageJsonPath: string) {
+  if (!await exist(packageJsonPath)) {
     return [];
   }
-  const packageJsonText = await Deno.readTextFile(packageJson);
+  const packageJsonText = await Deno.readTextFile(packageJsonPath);
 
   const packageJsonObject = JSON.parse(packageJsonText);
 
