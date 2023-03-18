@@ -9,7 +9,7 @@ import { listLog } from "./src/log.ts";
 import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
 import type { PackageManager } from "./src/pm.ts";
 import { execa, normalFusing } from "./src/process.ts";
-import { join } from "https://deno.land/std@0.179.0/path/mod.ts";
+import { join } from "https://deno.land/std@0.180.0/path/mod.ts";
 import { isPackageManager, usePackageManager } from "./src/pm.ts";
 import { extractDeps, extractDepsFromPackageJson } from "./src/deps.ts";
 
@@ -53,7 +53,7 @@ export async function ensureProjectInit() {
   const wantInited = confirm(
     `🫣 ${
       yellow(
-        "package.json does not exist",
+        " package.json does not exist",
       )
     }, whether to initialize?`,
   );

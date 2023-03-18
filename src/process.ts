@@ -1,5 +1,5 @@
-import { which } from "https://deno.land/x/which@0.2.1/mod.ts";
-import { cyan, red, yellow } from "https://deno.land/std@0.178.0/fmt/colors.ts";
+import { which } from "https://deno.land/x/which@0.2.2/mod.ts";
+import { cyan, red, yellow } from "https://deno.land/std@0.180.0/fmt/colors.ts";
 
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!);
@@ -16,7 +16,7 @@ export async function execa(cmd: string[]) {
     console.log(
       `❎ The task was ${yellow("manually interrupted")}`,
     );
-  Deno.kill(process.pid);
+    Deno.kill(process.pid);
     Deno.close(process.rid);
     Deno.exit(128 + 2);
   });

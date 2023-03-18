@@ -1,5 +1,5 @@
 import { slash } from "./path.ts";
-import { dirname, join } from "https://deno.land/std@0.179.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.180.0/path/mod.ts";
 
 export async function exist(path: string) {
   try {
