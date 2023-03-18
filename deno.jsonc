@@ -1,6 +1,5 @@
 {
 	"tasks": {
-		"start": "deno run src/main.ts",
-		"bundle": "rm -rf dist && mkdir dist && deno bundle mod.ts dist/main.js"
+		"start": "deno run src/main.ts"
 	}
 }

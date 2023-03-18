@@ -2,7 +2,7 @@ import { exist } from "./fs.ts";
 import { builtinModules as _builtinModules } from "node:module";
 import { walk } from "https://deno.land/std@0.179.0/fs/walk.ts";
 
-export const builtinModules = [
+export const BUILTIN_MODULES = [
   "module",
   "node:module",
   ..._builtinModules,
@@ -10,7 +10,7 @@ export const builtinModules = [
 ];
 
 export function isBuiltin(specifier: string) {
-  return builtinModules.includes(specifier);
+  return BUILTIN_MODULES.includes(specifier);
 }
 
 export function uniqueDeps(...depsArray: string[][]) {
@@ -19,12 +19,12 @@ export function uniqueDeps(...depsArray: string[][]) {
 
 export function extractSpecifier(code: string) {
   return code.match(
-    /(?<=((require|import)\(|(from|import)\s+)["']).*(?=["'])/g,
+    /(?<=(require|import)\(|(from|import)\s+)(['"]).*?(?=\2)/g,
   ) || [];
 }
 
 export function eliminateComments(code: string) {
-  return code.replace(/\/\/.*/g, "").replace(/\/\*.*?\*\//g, "");
+  return code.replace(/\/\/.*|\/\*.*?\*\//g, "");
 }
 
 export function filterDeps(specifiers: string[]) {

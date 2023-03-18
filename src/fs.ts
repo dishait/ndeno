@@ -14,7 +14,7 @@ export async function exist(path: string) {
 }
 
 export function createFindUp(target: string) {
-  return async function findUp(base: string) {
+  return async function(base: string) {
     base = slash(base);
     const paths = [join(base, target)];
     let total = base.split("/").length - 1;

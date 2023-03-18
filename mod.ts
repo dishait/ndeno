@@ -5,8 +5,8 @@ import {
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
-import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
 import { listLog } from "./src/log.ts";
+import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
 import type { PackageManager } from "./src/pm.ts";
 import { execa, normalFusing } from "./src/process.ts";
 import { join } from "https://deno.land/std@0.179.0/path/mod.ts";
@@ -96,16 +96,10 @@ function refresh() {
     }
 
     const wantRefresh = confirm(
-      `🙄 Do you want to refresh the package manager ${
-        green(
-          "in the cache",
-        )
-      }?`,
+      `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
     );
 
-    if (!wantRefresh) {
-      normalFusing();
-    }
+    if (!wantRefresh) normalFusing();
 
     inputPackageManager();
 
@@ -126,81 +120,67 @@ function here(see = Deno.args[0] === "here") {
 
   return see;
 }
-
 async function autoInstall(
-  auto = Deno.args[0] === "i" && Deno.args[1] === "-a",
+  autoInstallFlag = Deno.args[0] === "i" && Deno.args[1] === "-a",
 ) {
-  if (auto) {
-    const base = Deno.cwd();
-    const packageJsonPath = await findUpPackageJson(base) || "";
-    const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath);
+  if (!autoInstallFlag) {
+    return false;
+  }
 
-    const nodeModulesPath = await findUpNodeModules(base) || "";
+  const baseDir = Deno.cwd();
+  const packageJsonPath = await findUpPackageJson(baseDir) || "";
+  const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath);
 
-    const depsNotInstalled =
-      (await Promise.all(depsInPackageJson.map(async (dep) => {
-        return {
-          name: dep,
-          exist: await exist(join(nodeModulesPath, dep)),
-        };
-      }))).filter((dep) => !dep.exist).map((dep) => dep.name);
+  const nodeModulesPath = await findUpNodeModules(baseDir) || "";
 
-    const deps = await extractDeps(base);
+  const depsNotInstalled = await Promise.all(
+    depsInPackageJson.map(async (dep) => {
+      return { name: dep, exist: await exist(join(nodeModulesPath, dep)) };
+    }),
+  ).then((deps) => deps.filter((dep) => !dep.exist).map((dep) => dep.name));
 
-    const depsNotInPackageJson = deps.filter((dep) =>
-      !depsInPackageJson.includes(dep)
+  const deps = await extractDeps(baseDir);
+
+  const depsNotInPackageJson = deps.filter((dep) =>
+    !depsInPackageJson.includes(dep)
+  );
+
+  const depsToInstall = depsNotInPackageJson.concat(depsNotInstalled);
+
+  if (depsToInstall.length) {
+    console.log(
+      `📂 The dependencies are detected from ${yellow("files")}`,
+    );
+    console.log(listLog(depsNotInPackageJson));
+
+    console.log(
+      `🌳 The dependencies are detected from ${green("package.json")}`,
+    );
+    console.log(listLog(depsInPackageJson));
+
+    const wantInstallDeps = confirm(
+      `📂 Whether to install dependencies from ${
+        yellow(
+          "files",
+        )
+      } and from ${
+        green(
+          "package.json",
+        )
+      } ?`,
     );
 
-    if (depsNotInPackageJson.length) {
-      console.log(
-        `📂 The deps is detected from ${yellow("files")}`,
-      );
-      console.log(listLog(depsNotInPackageJson));
-
-      const wantInstallDepsNotInPackageJson = confirm(
-        `📂 Whether to install from ${
-          yellow(
-            "files",
-          )
-        } ?`,
-      );
-
-      if (wantInstallDepsNotInPackageJson) {
-        await execa([
-          packageManager.value ?? "npm",
-          packageManager.value === "yarn" ? "add" : "install",
-          ...depsNotInPackageJson,
-        ]);
-      }
+    if (wantInstallDeps) {
+      await execa([
+        packageManager.value ?? "npm",
+        packageManager.value === "yarn" ? "add" : "install",
+        ...depsToInstall,
+      ]);
     }
-
-    if (depsNotInstalled.length) {
-      console.log(
-        `🌳 The deps is detected from ${green("package.json")}`,
-      );
-      console.log(listLog(depsInPackageJson));
-
-      const wantInstallDepsInPackageJson = confirm(
-        `🌳 Whether to install deps from ${
-          green(
-            "package.json",
-          )
-        } ?`,
-      );
-
-      if (wantInstallDepsInPackageJson) {
-        await execa([
-          packageManager.value ?? "npm",
-          packageManager.value === "yarn" ? "add" : "install",
-          ...depsNotInstalled,
-        ]);
-      }
-    }
-    console.log(`✅ Automatic install successfully`);
   }
-  return auto;
+  console.log(`✅ Automatic install successfully`);
+  return true;
 }
-
 const tasks = [
   hopeCreateProject,
   refresh,

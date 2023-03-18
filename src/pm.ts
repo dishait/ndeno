@@ -8,68 +8,35 @@ export function usePackageManager() {
   const ref = creatLocalStorageRef<PackageManager>(cwd);
 
   async function staging() {
-    if (ref.value) {
-      return;
-    }
-    if (await exist("pnpm-lock.yaml")) {
-      ref.value = "pnpm";
-    } else if (await exist("yarn.lock")) {
-      ref.value = "yarn";
-    } else {
-      ref.value = "npm";
-    }
+    // Check if the value of ref exists
+    if (ref.value) return;
+    // Set the value of ref based on the existence of certain files
+    ref.value = await exist("pnpm-lock.yaml") ? "pnpm" : await exist("yarn.lock") ? "yarn" : "npm";
   }
-
+  
   function getCommand() {
-    const { length } = Deno.args;
-    // install
-    if (length === 0) {
-      return [ref.value, "install"];
-    }
+    const pm = ref.value
+    const [command, ...args] = Deno.args;
+    
+    // If there are no arguments, install dependencies by default
+    if (args.length === 0) return [pm, "install"];
 
-    const command = Deno.args[0];
+    // If the command is "i" and the package manager is yarn, convert it to "add"
+    if (pm === "yarn" && command === "i") return [pm, "add", ...args];
 
-    // Not supported by yarn install
-    if (
-      ref.value === "yarn" &&
-      length > 1 &&
-      (command === "i" || command === "install")
-    ) {
-      return [ref.value, "add", ...Deno.args.slice(1)];
-    }
+    // If the package manager is not npm, return the arguments directly
+    if (pm !== "npm") return [pm, ...Deno.args];
 
-    // Most manager commands are compatible
-    if (ref.value !== "npm") {
-      return [ref.value, ...Deno.args];
-    }
+    // If the command is a script, convert it to "run" command
+    const isRunScript = !/^(run|install|test|publish|uninstall|help|add|remove|i)$/.test(command);
 
-    const isRunScript =
-      !/^(run|install|test|publish|uninstall|help|add|remove|i)$/.test(
-        command,
-      );
-
-    // npm run script
-    if (isRunScript) {
-      return [ref.value, "run", ...Deno.args];
-    }
-
-    return [ref.value, ...Deno.args];
+    return isRunScript ? [pm, "run", ...Deno.args] : [pm, ...Deno.args];
   }
 
-  return {
-    ref,
-    staging,
-    getCommand,
-  };
+  return { ref, staging, getCommand };
 }
 
 export function isPackageManager(v: string): v is PackageManager {
-  switch (v) {
-    case "npm":
-    case "yarn":
-    case "pnpm":
-      return true;
-    default:
-      return false;
-  }
+  // Check if the value of v is one of the package managers
+  return ["npm", "yarn", "pnpm"].includes(v);
 }
