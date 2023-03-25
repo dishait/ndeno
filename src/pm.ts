@@ -1,7 +1,10 @@
 import { exist } from "./fs.ts";
 import { creatLocalStorageRef } from "./storage.ts";
+import { Select } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 
 export type PackageManager = "npm" | "yarn" | "pnpm";
+
+const pms = ['npm', 'yarn', 'pnpm']
 
 export function usePackageManager() {
   const cwd = Deno.cwd();
@@ -35,10 +38,17 @@ export function usePackageManager() {
     return isRunScript ? [pm, "run", ...Deno.args] : [pm, ...Deno.args];
   }
 
-  return { ref, staging, getCommand };
+  async function select() {
+    ref.value = await Select.prompt({
+      message: 'select your package manager',
+      options: pms
+    }) as PackageManager
+  }
+
+  return { ref, staging, getCommand, select };
 }
 
 export function isPackageManager(v: string): v is PackageManager {
   // Check if the value of v is one of the package managers
-  return ["npm", "yarn", "pnpm"].includes(v);
+  return pms.includes(v);
 }
