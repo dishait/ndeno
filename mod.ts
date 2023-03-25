@@ -21,10 +21,9 @@ const {
 
 function inputPackageManager() {
   packageManager.value = prompt(
-    `🤯 Input your package manager ${
-      dim(
-        "(npm | yarn | pnpm)",
-      )
+    `🤯 Input your package manager ${dim(
+      "(npm | yarn | pnpm)",
+    )
     }`,
     "npm",
   ) as PackageManager;
@@ -51,10 +50,9 @@ export async function ensureProjectInit() {
   }
 
   const wantInited = confirm(
-    `🫣 ${
-      yellow(
-        " package.json does not exist",
-      )
+    `🫣 ${yellow(
+      " package.json does not exist",
+    )
     }, whether to initialize?`,
   );
 
@@ -110,10 +108,9 @@ function refresh() {
 function here(see = Deno.args[0] === "here") {
   if (see) {
     console.log(
-      `🦖 The manager of the current directory is ${
-        cyan(
-          packageManager.value ?? "null",
-        )
+      `🦖 The manager of the current directory is ${cyan(
+        packageManager.value ?? "null",
+      )
       }`,
     );
   }
@@ -159,14 +156,12 @@ async function autoInstall(
     console.log(listLog(depsInPackageJson));
 
     const wantInstallDeps = confirm(
-      `📂 Whether to install dependencies from ${
-        yellow(
-          "files",
-        )
-      } and from ${
-        green(
-          "package.json",
-        )
+      `📂 Whether to install dependencies from ${yellow(
+        "files",
+      )
+      } and from ${green(
+        "package.json",
+      )
       } ?`,
     );
 

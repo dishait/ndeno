@@ -1,5 +1,5 @@
 import { slash } from "./path.ts";
-import { dirname, join } from "https://deno.land/std@0.180.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.181.0/path/mod.ts";
 
 export async function exist(path: string) {
   try {
@@ -14,7 +14,7 @@ export async function exist(path: string) {
 }
 
 export function createFindUp(target: string) {
-  return async function(base: string) {
+  return async function (base: string) {
     base = slash(base);
     const paths = [join(base, target)];
     let total = base.split("/").length - 1;

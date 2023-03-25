@@ -14,8 +14,8 @@ export function usePackageManager() {
     ref.value = await exist("pnpm-lock.yaml")
       ? "pnpm"
       : await exist("yarn.lock")
-      ? "yarn"
-      : "npm";
+        ? "yarn"
+        : "npm";
   }
 
   function getCommand() {
@@ -30,7 +30,7 @@ export function usePackageManager() {
 
     // If the command is a script, convert it to "run" command
     const isRunScript =
-      !/^(run|install|test|publish|uninstall|help|add|remove|i)$/.test(command);
+      !/^(run|install|test|publish|uninstall|help|add|create|remove|i)$/.test(command);
 
     return isRunScript ? [pm, "run", ...Deno.args] : [pm, ...Deno.args];
   }
