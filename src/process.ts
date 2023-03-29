@@ -1,5 +1,5 @@
 import { which } from "https://deno.land/x/which@0.2.2/mod.ts";
-import { cyan, red, yellow } from "https://deno.land/std@0.180.0/fmt/colors.ts";
+import { cyan, red, yellow } from "https://deno.land/std@0.181.0/fmt/colors.ts";
 
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!);
