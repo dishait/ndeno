@@ -1,5 +1,5 @@
 import { which } from "https://deno.land/x/which@0.2.2/mod.ts";
-import { cyan, red, yellow } from "https://deno.land/std@0.181.0/fmt/colors.ts";
+import { cyan, red, yellow } from "https://deno.land/std@0.182.0/fmt/colors.ts";
 
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!);
@@ -11,14 +11,24 @@ export async function execa(cmd: string[]) {
     stdout: "inherit",
   });
 
+  function childExit(signo?: Deno.Signal) {
+    Deno.close(process.rid);
+    Deno.kill(process.pid, signo);
+  }
+
   // watch ctrl + c
   Deno.addSignalListener("SIGINT", () => {
     console.log(
       `❎ The task was ${yellow("manually interrupted")}`,
     );
-    Deno.kill(process.pid);
-    Deno.close(process.rid);
-    Deno.exit(128 + 2);
+
+    childExit("SIGINT");
+    Deno.exit(130);
+  });
+
+  // Prevent accidental exit
+  global.addEventListener("beforeunload", () => {
+    childExit();
   });
 
   const { success, code } = await process.status();

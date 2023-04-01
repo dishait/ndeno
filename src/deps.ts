@@ -1,6 +1,6 @@
 import { exist } from "./fs.ts";
 import { builtinModules as _builtinModules } from "node:module";
-import { walk } from "https://deno.land/std@0.181.0/fs/walk.ts";
+import { walk } from "https://deno.land/std@0.182.0/fs/walk.ts";
 
 export const BUILTIN_MODULES = [
   "module",

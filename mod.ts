@@ -2,13 +2,13 @@ import {
   cyan,
   green,
   yellow,
-} from "https://deno.land/std@0.181.0/fmt/colors.ts";
+} from "https://deno.land/std@0.182.0/fmt/colors.ts";
 
 import { listLog } from "./src/log.ts";
 import { isPackageManager, usePackageManager } from "./src/pm.ts";
 import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
 import { execa, normalFusing } from "./src/process.ts";
-import { join } from "https://deno.land/std@0.181.0/path/mod.ts";
+import { join } from "https://deno.land/std@0.182.0/path/mod.ts";
 import { extractDeps, extractDepsFromPackageJson } from "./src/deps.ts";
 
 const {
