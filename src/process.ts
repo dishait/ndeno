@@ -27,7 +27,11 @@ export async function execa(cmd: string[]) {
   });
 
   // Prevent accidental exit
-  global.addEventListener("beforeunload", () => {
+  globalThis.addEventListener("error", () => {
+    childExit();
+  });
+
+  globalThis.addEventListener("unhandledrejection", () => {
     childExit();
   });
 
