@@ -11,9 +11,10 @@ export async function execa(cmd: string[]) {
     stdout: "inherit",
   });
 
-  function childExit(signo?: Deno.Signal) {
+  function childExit() {
     Deno.close(process.rid);
-    Deno.kill(process.pid, signo);
+    // No need to manually pass in signo
+    Deno.kill(process.pid);
   }
 
   // watch ctrl + c
@@ -22,7 +23,7 @@ export async function execa(cmd: string[]) {
       `❎ The task was ${yellow("manually interrupted")}`,
     );
 
-    childExit("SIGINT");
+    childExit();
     Deno.exit(130);
   });
 
