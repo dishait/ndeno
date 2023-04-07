@@ -12,9 +12,9 @@ export async function execa(cmd: string[]) {
   });
 
   function childExit() {
-    Deno.close(process.rid);
     // No need to manually pass in signo
     Deno.kill(process.pid);
+    Deno.close(process.rid);
   }
 
   // watch ctrl + c
