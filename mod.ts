@@ -1,41 +1,36 @@
-import {
-  cyan,
-  green,
-  yellow,
-} from "https://deno.land/std@0.182.0/fmt/colors.ts";
-
-import { listLog } from "./src/log.ts";
-import { isPackageManager, usePackageManager } from "./src/pm.ts";
-import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts";
-import { execa, normalFusing } from "./src/process.ts";
-import { join } from "https://deno.land/std@0.182.0/path/mod.ts";
-import { extractDeps, extractDepsFromPackageJson } from "./src/deps.ts";
+import { join } from "./src/path.ts"
+import { listLog } from "./src/log.ts"
+import { cyan, green, yellow } from "./src/color.ts"
+import { execa, normalFusing } from "./src/process.ts"
+import { isPackageManager, usePackageManager } from "./src/pm.ts"
+import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
+import { extractDeps, extractDepsFromPackageJson } from "./src/extract.ts"
 
 const {
   staging,
   ref: pm,
   getCommand,
   select: selectPM,
-} = usePackageManager();
+} = usePackageManager()
 
 export async function hopeCreateProject() {
   if (Deno.args[0] !== "create") {
-    return false;
+    return false
   }
 
-  await selectPM();
+  await selectPM()
 
-  await execa(getCommand());
+  await execa(getCommand())
 
-  console.log(`✅ The project create succeeded`);
+  console.log(`✅ The project create succeeded`)
 
-  return true;
+  return true
 }
 
 export async function ensureProjectInit() {
-  const ignore = Deno.args.length !== 0 || (await exist("package.json"));
+  const ignore = Deno.args.length !== 0 || (await exist("package.json"))
   if (ignore) {
-    return false;
+    return false
   }
 
   const wantInited = confirm(
@@ -44,54 +39,54 @@ export async function ensureProjectInit() {
         " package.json does not exist",
       )
     }, whether to initialize?`,
-  );
+  )
 
   if (!wantInited) {
-    normalFusing();
+    normalFusing()
   }
 
-  await selectPM();
+  await selectPM()
 
-  const cmd = [pm.value, "init"];
+  const cmd = [pm.value, "init"]
 
   if (pm.value !== "pnpm") {
     const skipTedious = confirm(
       `👻 Whether to ${green("skip complicated steps")}?`,
-    );
+    )
     if (skipTedious) {
-      cmd.push("-y");
+      cmd.push("-y")
     }
   }
 
-  await execa(cmd);
-  console.log(`✅ The project initialization succeeded`);
+  await execa(cmd)
+  console.log(`✅ The project initialization succeeded`)
 
-  return true;
+  return true
 }
 
 async function runCommand() {
-  await staging();
-  await execa(getCommand());
-  console.log(`✅ Command executed successfully`);
-  return true;
+  await staging()
+  await execa(getCommand())
+  console.log(`✅ Command executed successfully`)
+  return true
 }
 
 async function refresh() {
   if (Deno.args[0] === "refresh") {
     if (isPackageManager(Deno.args[1])) {
-      pm.value = Deno.args[1];
-      return here(true);
+      pm.value = Deno.args[1]
+      return here(true)
     }
 
     const wantRefresh = confirm(
       `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
-    );
+    )
 
-    if (!wantRefresh) normalFusing();
+    if (!wantRefresh) normalFusing()
 
-    await selectPM();
+    await selectPM()
 
-    return here(true);
+    return here(true)
   }
 }
 
@@ -103,48 +98,48 @@ function here(see = Deno.args[0] === "here") {
           pm.value ?? "null",
         )
       }`,
-    );
+    )
   }
 
-  return see;
+  return see
 }
 async function autoInstall(
   autoInstallFlag = Deno.args[0] === "i" && Deno.args[1] === "-a",
 ) {
   if (!autoInstallFlag) {
-    return false;
+    return false
   }
 
-  const baseDir = Deno.cwd();
-  const packageJsonPath = await findUpPackageJson(baseDir) || "";
-  const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath);
+  const baseDir = Deno.cwd()
+  const packageJsonPath = await findUpPackageJson(baseDir) || ""
+  const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath)
 
-  const nodeModulesPath = await findUpNodeModules(baseDir) || "";
+  const nodeModulesPath = await findUpNodeModules(baseDir) || ""
 
   const depsNotInstalled = await Promise.all(
     depsInPackageJson.map(async (dep) => {
-      return { name: dep, exist: await exist(join(nodeModulesPath, dep)) };
+      return { name: dep, exist: await exist(join(nodeModulesPath, dep)) }
     }),
-  ).then((deps) => deps.filter((dep) => !dep.exist).map((dep) => dep.name));
+  ).then((deps) => deps.filter((dep) => !dep.exist).map((dep) => dep.name))
 
-  const deps = await extractDeps(baseDir);
+  const deps = await extractDeps(baseDir)
 
   const depsNotInPackageJson = deps.filter((dep) =>
     !depsInPackageJson.includes(dep)
-  );
+  )
 
-  const depsToInstall = depsNotInPackageJson.concat(depsNotInstalled);
+  const depsToInstall = depsNotInPackageJson.concat(depsNotInstalled)
 
   if (depsToInstall.length) {
     console.log(
       `📂 The dependencies are detected from ${yellow("files")}`,
-    );
-    console.log(listLog(depsNotInPackageJson));
+    )
+    console.log(listLog(depsNotInPackageJson))
 
     console.log(
       `🌳 The dependencies are detected from ${green("package.json")}`,
-    );
-    console.log(listLog(depsInPackageJson));
+    )
+    console.log(listLog(depsInPackageJson))
 
     const wantInstallDeps = confirm(
       `📂 Whether to install dependencies from ${
@@ -156,18 +151,18 @@ async function autoInstall(
           "package.json",
         )
       } ?`,
-    );
+    )
 
     if (wantInstallDeps) {
       await execa([
         pm.value ?? "npm",
         pm.value === "yarn" ? "add" : "install",
         ...depsToInstall,
-      ]);
+      ])
     }
   }
-  console.log(`✅ Automatic install successfully`);
-  return true;
+  console.log(`✅ Automatic install successfully`)
+  return true
 }
 const tasks = [
   hopeCreateProject,
@@ -176,12 +171,12 @@ const tasks = [
   ensureProjectInit,
   autoInstall,
   runCommand,
-];
+]
 
 for (const task of tasks) {
-  const fusing = await task();
+  const fusing = await task()
 
   if (fusing) {
-    break;
+    break
   }
 }

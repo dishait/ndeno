@@ -1,5 +1,13 @@
 {
-	"tasks": {
-		"start": "deno run src/main.ts"
-	}
+  "tasks": {
+    "start": "deno run src/main.ts"
+  },
+  "fmt": {
+    "options": {
+      "semiColons": false
+    }
+  },
+  "compilerOptions": {
+    "types": ["npm:@types/node"]
+  }
 }

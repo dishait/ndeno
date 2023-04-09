@@ -1,10 +1,10 @@
-import { green } from "https://deno.land/std@0.182.0/fmt/colors.ts";
+import { green } from "./color.ts"
 
 export function listLog(list: string[], color = green) {
   return list.reduce((s, v, i) => {
     s += `${i === list.length - 1 ? " └─ " : " ├─ "}${color(v)}${
       i === list.length - 1 ? "" : "\n"
-    }`;
-    return s;
-  }, "");
+    }`
+    return s
+  }, "")
 }
