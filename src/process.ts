@@ -11,10 +11,15 @@ export async function execa(cmd: string[]) {
     stdout: "inherit",
   })
 
+  let closed = false
+
   function childExit() {
-    // No need to manually pass in signo
-    Deno.kill(process.pid)
-    Deno.close(process.rid)
+    if (!closed) {
+      // No need to manually pass in signo
+      Deno.kill(process.pid)
+      Deno.close(process.rid)
+    }
+    closed = true
   }
 
   // watch ctrl + c
