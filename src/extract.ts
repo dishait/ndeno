@@ -16,27 +16,36 @@ export function uniqueDeps(...depsArray: string[][]) {
   return Array.from(new Set(depsArray.flat()))
 }
 
+const dynamicSpecifiersReg = /(?<=(import|require)\( *?(['"]))\w*?(?=\2)/g
+const staticSpecifiersReg = /(?<=(import|from) *?(["']))\w*?(?=\2)/g
+
 export function extractSpecifier(code: string) {
-  return code.match(
-    /(?<=(require|import)\(|(from|import)\s+)(['"]).*?(?=\2)/g,
-  ) || []
+  const dynamicSpecifiers = code.match(dynamicSpecifiersReg) || []
+  const staticSpecifiers = code.match(staticSpecifiersReg) || []
+  return [...dynamicSpecifiers, ...staticSpecifiers]
 }
 
 export function eliminateComments(code: string) {
   return code.replace(/\/\/.*|\/\*.*?\*\//g, "")
 }
 
+const effectiveSpecifierReg = /^\w|@/
+
 export function filterDeps(specifiers: string[]) {
-  return specifiers.filter((specifier) =>
-    !specifier.startsWith(".") && !isBuiltin(specifier) &&
-    !specifier.startsWith("node:") && !specifier.startsWith("#")
-  ).map((specifier) => {
-    if (specifier.startsWith("@")) {
-      const [organization, pkg] = specifier.split("/")
-      return `${organization}/${pkg}`
-    }
-    return specifier.replace(/\/.*/, "")
-  })
+  return specifiers
+    .filter(
+      (specifier) =>
+        effectiveSpecifierReg.test(specifier) &&
+        !isBuiltin(specifier) &&
+        !specifier.startsWith("node:"),
+    )
+    .map((specifier) => {
+      if (specifier.startsWith("@")) {
+        const [organization, pkg] = specifier.split("/")
+        return `${organization}/${pkg}`
+      }
+      return specifier.replace(/\/.*/, "")
+    })
 }
 
 export async function readCodes(base: string) {
@@ -68,7 +77,7 @@ export async function extractDeps(base: string) {
 }
 
 export async function extractDepsFromPackageJson(packageJsonPath: string) {
-  if (!await exist(packageJsonPath)) {
+  if (!(await exist(packageJsonPath))) {
     return []
   }
   const packageJsonText = await Deno.readTextFile(packageJsonPath)

@@ -1,17 +1,20 @@
 import { join } from "./src/path.ts"
 import { listLog } from "./src/log.ts"
-import { cyan, green, yellow } from "./src/color.ts"
+import { cyan, green, red, yellow } from "./src/color.ts"
 import { execa, normalFusing } from "./src/process.ts"
 import { isPackageManager, usePackageManager } from "./src/pm.ts"
 import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
 import { extractDeps, extractDepsFromPackageJson } from "./src/extract.ts"
 
-const {
-  staging,
-  ref: pm,
-  getCommand,
-  select: selectPM,
-} = usePackageManager()
+const { staging, ref: pm, getCommand, select: selectPM } = usePackageManager()
+
+export function install(deps: string[]) {
+  return execa([
+    pm.value ?? "npm",
+    pm.value === "yarn" ? "add" : "install",
+    ...deps,
+  ])
+}
 
 export async function hopeCreateProject() {
   if (Deno.args[0] !== "create") {
@@ -34,11 +37,7 @@ export async function ensureProjectInit() {
   }
 
   const wantInited = confirm(
-    `🫣 ${
-      yellow(
-        " package.json does not exist",
-      )
-    }, whether to initialize?`,
+    `🫣 ${yellow(" package.json does not exist")}, whether to initialize?`,
   )
 
   if (!wantInited) {
@@ -93,11 +92,7 @@ async function refresh() {
 function here(see = Deno.args[0] === "here") {
   if (see) {
     console.log(
-      `🦖 The manager of the current directory is ${
-        cyan(
-          pm.value ?? "null",
-        )
-      }`,
+      `🦖 The manager of the current directory is ${cyan(pm.value ?? "null")}`,
     )
   }
 
@@ -111,10 +106,10 @@ async function autoInstall(
   }
 
   const baseDir = Deno.cwd()
-  const packageJsonPath = await findUpPackageJson(baseDir) || ""
+  const packageJsonPath = (await findUpPackageJson(baseDir)) || ""
   const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath)
 
-  const nodeModulesPath = await findUpNodeModules(baseDir) || ""
+  const nodeModulesPath = (await findUpNodeModules(baseDir)) || ""
 
   const depsNotInstalled = await Promise.all(
     depsInPackageJson.map(async (dep) => {
@@ -124,44 +119,44 @@ async function autoInstall(
 
   const deps = await extractDeps(baseDir)
 
-  const depsNotInPackageJson = deps.filter((dep) =>
-    !depsInPackageJson.includes(dep)
+  const depsNotInPackageJson = deps.filter(
+    (dep) => !depsInPackageJson.includes(dep),
   )
 
   const depsToInstall = depsNotInPackageJson.concat(depsNotInstalled)
 
   if (depsToInstall.length) {
-    console.log(
-      `📂 The dependencies are detected from ${yellow("files")}`,
-    )
-    console.log(listLog(depsNotInPackageJson))
+    const filesText = yellow("files")
+    const packageText = green("package.json")
 
-    console.log(
-      `🌳 The dependencies are detected from ${green("package.json")}`,
-    )
-    console.log(listLog(depsInPackageJson))
+    const FL = depsNotInPackageJson.length
+    const PL = depsInPackageJson.length
+    if (FL) {
+      console.log(`📂 The dependencies are detected from ${filesText} (${FL})`)
+      console.log(listLog(depsNotInPackageJson))
+    }
+
+    if (PL) {
+      console.log(
+        `🌳 The dependencies are detected from ${packageText} (${PL})`,
+      )
+      console.log(listLog(depsInPackageJson))
+    }
+
+    const TL = FL + PL
 
     const wantInstallDeps = confirm(
-      `📂 Whether to install dependencies from ${
-        yellow(
-          "files",
-        )
-      } and from ${
-        green(
-          "package.json",
-        )
-      } ?`,
+      `📂 Whether to install dependencies from ${filesText} or from ${packageText} ${TL}?`,
     )
 
     if (wantInstallDeps) {
-      await execa([
-        pm.value ?? "npm",
-        pm.value === "yarn" ? "add" : "install",
-        ...depsToInstall,
-      ])
+      await install(depsToInstall)
+      console.log(`✅ Automatic install successfully`)
+    } else {
+      console.log(`❎ ${red("Automatic install failed")}`)
     }
   }
-  console.log(`✅ Automatic install successfully`)
+
   return true
 }
 const tasks = [

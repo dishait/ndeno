@@ -14,9 +14,9 @@ export function usePackageManager() {
     // Check if the value of ref exists
     if (ref.value) return
     // Set the value of ref based on the existence of certain files
-    ref.value = await exist("pnpm-lock.yaml")
+    ref.value = (await exist("pnpm-lock.yaml"))
       ? "pnpm"
-      : await exist("yarn.lock")
+      : (await exist("yarn.lock"))
       ? "yarn"
       : "npm"
   }
@@ -41,10 +41,10 @@ export function usePackageManager() {
   }
 
   async function select() {
-    ref.value = await Select.prompt({
+    ref.value = (await Select.prompt({
       message: "select your package manager",
       options: pms,
-    }) as PackageManager
+    })) as PackageManager
   }
 
   return { ref, staging, getCommand, select }
