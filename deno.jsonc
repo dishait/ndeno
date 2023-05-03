@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "start": "deno run src/main.ts"
+    "start": "deno run src/main.ts",
+    "install": "deno install --allow-read --allow-env --allow-run --unstable -rfn n mod.ts"
   },
   "fmt": {
     "options": {
