@@ -12,11 +12,14 @@ export async function execa(cmd: string[]) {
     stdout: "inherit",
   })
 
+  let resolved = false
   let closed = false
   function childExit() {
     if (!closed) {
       // No need to manually pass in signo
-      process.kill()
+      if (!resolved) {
+        process.kill()
+      }
     }
     closed = true
   }
@@ -46,6 +49,7 @@ export async function execa(cmd: string[]) {
   const process = commander.spawn()
 
   const { success, code } = await process.status
+  resolved = true
 
   if (!success) {
     console.log(`❎ ${red("Task execution failed")}`)
