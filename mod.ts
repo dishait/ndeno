@@ -1,10 +1,10 @@
-import { join } from "./src/path.ts"
-import { listLog } from "./src/log.ts"
-import { cyan, green, red, yellow } from "./src/color.ts"
-import { execa, normalFusing } from "./src/process.ts"
-import { isPackageManager, usePackageManager } from "./src/pm.ts"
-import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
-import { extractDeps, extractDepsFromPackageJson } from "./src/extract.ts"
+import { cyan, green, red, yellow } from './src/color.ts';
+import { extractDeps, extractDepsFromPackageJson } from './src/extract.ts';
+import { exist, findUpNodeModules, findUpPackageJson } from './src/fs.ts';
+import { listLog } from './src/log.ts';
+import { join } from './src/path.ts';
+import { isPackageManager, usePackageManager } from './src/pm.ts';
+import { execa, normalFusing } from './src/process.ts';
 
 const { staging, ref: pm, getCommand, select: selectPM } = usePackageManager()
 

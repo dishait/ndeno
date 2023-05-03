@@ -1,5 +1,6 @@
-import { exist, walk } from "./fs.ts"
 import { builtinModules as _builtinModules } from "node:module"
+
+import { exist, walk } from "./fs.ts"
 
 export const BUILTIN_MODULES = [
   "module",

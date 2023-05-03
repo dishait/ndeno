@@ -1,4 +1,5 @@
 import { dirname, join, slash } from "./path.ts"
+
 export { walk } from "https://deno.land/std@0.182.0/fs/walk.ts"
 
 export async function exist(path: string) {

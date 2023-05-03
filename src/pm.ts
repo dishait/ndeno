@@ -1,6 +1,7 @@
+import { Select } from "https://deno.land/x/cliffy@v0.25.7/mod.ts"
+
 import { exist } from "./fs.ts"
 import { creatLocalStorageRef } from "./storage.ts"
-import { Select } from "https://deno.land/x/cliffy@v0.25.7/mod.ts"
 
 export type PackageManager = "npm" | "yarn" | "pnpm"
 

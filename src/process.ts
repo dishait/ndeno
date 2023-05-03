@@ -1,23 +1,22 @@
+import { which } from "https://deno.land/x/which@0.3.0/mod.ts"
+
 import { cyan, red, yellow } from "./color.ts"
-import { which } from "https://deno.land/x/which@0.2.2/mod.ts"
 
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!)
 
-  const process = Deno.run({
-    cmd: [command!, ...cmd],
+  const commander = new Deno.Command(command!, {
+    args: [...cmd],
     stdin: "inherit",
     stderr: "inherit",
     stdout: "inherit",
   })
 
   let closed = false
-
   function childExit() {
     if (!closed) {
       // No need to manually pass in signo
-      Deno.kill(process.pid)
-      Deno.close(process.rid)
+      process.kill()
     }
     closed = true
   }
@@ -27,7 +26,6 @@ export async function execa(cmd: string[]) {
     console.log(
       `❎ The task was ${yellow("manually interrupted")}`,
     )
-
     childExit()
     Deno.exit(130)
   })
@@ -41,9 +39,13 @@ export async function execa(cmd: string[]) {
     childExit()
   })
 
-  const { success, code } = await process.status()
+  globalThis.addEventListener("unload", () => {
+    childExit()
+  })
 
-  process.close()
+  const process = commander.spawn()
+
+  const { success, code } = await process.status
 
   if (!success) {
     console.log(`❎ ${red("Task execution failed")}`)
