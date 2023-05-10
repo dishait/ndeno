@@ -8,6 +8,11 @@
       "semiColons": false
     }
   },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
+  },
   "compilerOptions": {
     "types": ["npm:@types/node"]
   }

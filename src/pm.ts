@@ -1,7 +1,7 @@
 import { Select } from "https://deno.land/x/cliffy@v0.25.7/mod.ts"
 
+import { creatLocalStorageRef } from "./cache.ts"
 import { exist } from "./fs.ts"
-import { creatLocalStorageRef } from "./storage.ts"
 
 export type PackageManager = "npm" | "yarn" | "pnpm"
 
@@ -10,6 +10,8 @@ const pms = ["npm", "yarn", "pnpm"]
 export function usePackageManager() {
   const cwd = Deno.cwd()
   const ref = creatLocalStorageRef<PackageManager>(cwd)
+  const noRunReg =
+    /^(run|install|test|publish|uninstall|help|add|create|remove|i)$/
 
   async function staging() {
     // Check if the value of ref exists
@@ -33,10 +35,7 @@ export function usePackageManager() {
     if (pm === "yarn" && command === "i") return [pm, "add", ...args]
 
     // If the command is a script, convert it to "run" command
-    const isRunScript =
-      !/^(run|install|test|publish|uninstall|help|add|create|remove|i)$/.test(
-        command,
-      )
+    const isRunScript = !noRunReg.test(command)
 
     return isRunScript ? [pm, "run", ...Deno.args] : [pm, ...Deno.args]
   }

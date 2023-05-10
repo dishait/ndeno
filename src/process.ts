@@ -1,6 +1,9 @@
-import { which } from "https://deno.land/x/which@0.3.0/mod.ts"
+import { which as _which } from "https://deno.land/x/which@0.3.0/mod.ts"
 
 import { cyan, red, yellow } from "./color.ts"
+import { useThermalFn } from "./cache.ts"
+
+const which = useThermalFn(_which)
 
 export async function execa(cmd: string[]) {
   const command = await which(cmd.shift()!)
@@ -13,15 +16,12 @@ export async function execa(cmd: string[]) {
   })
 
   let resolved = false
-  let closed = false
   function childExit() {
-    if (!closed) {
+    if (!resolved) {
       // No need to manually pass in signo
-      if (!resolved) {
-        process.kill()
-      }
+      process.kill()
+      resolved = true
     }
-    closed = true
   }
 
   // watch ctrl + c

@@ -2,14 +2,17 @@ import { builtinModules as _builtinModules } from "node:module"
 
 import { exist, walk } from "./fs.ts"
 
-export const BUILTIN_MODULES = [
-  "module",
-  "node:module",
-  ..._builtinModules,
-  ..._builtinModules.map((m: string) => `node:${m}`),
-]
+let BUILTIN_MODULES: string[]
 
 export function isBuiltin(specifier: string) {
+  if (!BUILTIN_MODULES) {
+    BUILTIN_MODULES = [
+      "module",
+      "node:module",
+      ..._builtinModules,
+      ..._builtinModules.map((m: string) => `node:${m}`),
+    ]
+  }
   return BUILTIN_MODULES.includes(specifier)
 }
 
