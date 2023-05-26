@@ -1,177 +1,128 @@
-import { cyan, green, red, yellow } from "./src/color.ts"
-import { extractDeps, extractDepsFromPackageJson } from "./src/extract.ts"
-import { exists, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
-import { listLog } from "./src/log.ts"
-import { join } from "./src/path.ts"
-import { isPackageManager, usePackageManager } from "./src/pm.ts"
-import { execa, normalFusing } from "./src/process.ts"
+import { emptyDir } from "https://deno.land/std@0.189.0/fs/empty_dir.ts"
+import { Command } from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts"
 
-const { staging, ref: pm, getCommand, select: selectPM } = usePackageManager()
+import { brightGreen, brightYellow, gray } from "./src/color.ts"
+import {
+  findUpDetectPM,
+  findUpNodeModulesPath,
+  getPackageCommands,
+} from "./src/pm.ts"
+import { execa, execaInstall } from "./src/process.ts"
 
-export function install(deps: string[]) {
-  return execa([
-    pm.value ?? "npm",
-    pm.value === "yarn" ? "add" : "install",
-    ...deps,
-  ])
+interface Options {
+  global?: true
+  dir?: string
+  prod?: true
+  dev?: true
+  recursive: boolean
 }
 
-export async function hopeCreateProject() {
-  if (Deno.args[0] !== "create") {
+function formatOptions(originOptions: Options) {
+  const options = Object.keys(originOptions).filter((k) => {
+    if (typeof k === "boolean") {
+      return k
+    }
     return false
+  }).map((k) => `--${k}`)
+
+  if (originOptions.dir) {
+    options.push(`--dir=${originOptions.dir}`)
   }
 
-  await selectPM()
-
-  await execa(getCommand())
-
-  console.log(`✅ The project create succeeded`)
-
-  return true
+  return options
 }
 
-export async function ensureProjectInit() {
-  const ignore = Deno.args.length !== 0 || (await exists("package.json"))
-  if (ignore) {
-    return false
+if (import.meta.main) {
+  const commander = new Command()
+    .name("n")
+    .version("2.0.0")
+    .description("Command line tool created by deno to manage node projects")
+    .action(async () => {
+      const pm = await findUpDetectPM()
+      await execaInstall(pm, [], [])
+    })
+
+  const packageCommands = await getPackageCommands()
+  if (packageCommands) {
+    Object.keys(packageCommands).forEach((ck) => {
+      const cv = packageCommands[ck]
+      const runCommand = new Command().description(
+        `${gray(cv)}`,
+      ).action(async () => {
+        const pm = await findUpDetectPM()
+        await execa([pm, "run", ck])
+      })
+      commander.command(ck, runCommand)
+    })
   }
 
-  const wantInited = confirm(
-    `🫣 ${yellow(" package.json does not exist")}, whether to initialize?`,
-  )
-
-  if (!wantInited) {
-    normalFusing()
-  }
-
-  await selectPM()
-
-  const cmd = [pm.value, "init"]
-
-  if (pm.value !== "pnpm") {
-    const skipTedious = confirm(
-      `👻 Whether to ${green("skip complicated steps")}?`,
+  const install = new Command()
+    .alias("install")
+    .description(`install deps`)
+    .option("-g, --global", "Global installation")
+    .option("-C, --dir <dir:string>", "Change to directory <dir>")
+    .option(
+      "-P, --prod",
+      `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
     )
-    if (skipTedious) {
-      cmd.push("-y")
-    }
-  }
-
-  await execa(cmd)
-  console.log(`✅ The project initialization succeeded`)
-
-  return true
-}
-
-async function runCommand() {
-  await staging()
-  await execa(getCommand())
-  console.log(`✅ Command executed successfully`)
-  return true
-}
-
-async function refresh() {
-  if (Deno.args[0] === "refresh") {
-    if (isPackageManager(Deno.args[1])) {
-      pm.value = Deno.args[1]
-      return here(true)
-    }
-
-    const wantRefresh = confirm(
-      `🙄 Do you want to refresh the package manager ${green("in the cache")}?`,
+    .option(
+      "-D, --dev",
+      `Only ${
+        brightYellow(`devDependencies`)
+      } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
     )
-
-    if (!wantRefresh) normalFusing()
-
-    await selectPM()
-
-    return here(true)
-  }
-}
-
-function here(see = Deno.args[0] === "here") {
-  if (see) {
-    console.log(
-      `🦖 The manager of the current directory is ${cyan(pm.value ?? "null")}`,
+    .option(
+      "-r, --recursive",
+      `Run the command for each project in the workspace ${
+        brightYellow("(only pnpm)")
+      }`,
+      { default: true },
     )
-  }
-
-  return see
-}
-async function autoInstall(
-  autoInstallFlag = Deno.args[0] === "i" && Deno.args[1] === "-a",
-) {
-  if (!autoInstallFlag) {
-    return false
-  }
-
-  const baseDir = Deno.cwd()
-  const packageJsonPath = (await findUpPackageJson(baseDir)) || ""
-  const depsInPackageJson = await extractDepsFromPackageJson(packageJsonPath)
-
-  const nodeModulesPath = (await findUpNodeModules(baseDir)) || ""
-
-  const depsNotInstalled = await Promise.all(
-    depsInPackageJson.map(async (dep) => {
-      return { name: dep, exist: await exists(join(nodeModulesPath, dep)) }
-    }),
-  ).then((deps) => deps.filter((dep) => !dep.exist).map((dep) => dep.name))
-
-  const deps = await extractDeps(baseDir)
-
-  const depsNotInPackageJson = deps.filter(
-    (dep) => !depsInPackageJson.includes(dep),
-  )
-
-  const depsToInstall = depsNotInPackageJson.concat(depsNotInstalled)
-
-  if (depsToInstall.length) {
-    const filesText = yellow("files")
-    const packageText = green("package.json")
-
-    const FL = depsNotInPackageJson.length
-    const PL = depsInPackageJson.length
-    if (FL) {
-      console.log(`📂 The dependencies are detected from ${filesText} (${FL})`)
-      console.log(listLog(depsNotInPackageJson))
-    }
-
-    if (PL) {
-      console.log(
-        `🌳 The dependencies are detected from ${packageText} (${PL})`,
-      )
-      console.log(listLog(depsInPackageJson))
-    }
-
-    const TL = FL + PL
-
-    const wantInstallDeps = confirm(
-      `📂 Whether to install dependencies from ${filesText} or from ${packageText} ${TL}?`,
+    .arguments("[...deps:string]")
+    .action(
+      async (options, ...deps) => {
+        const pm = await findUpDetectPM()
+        await execaInstall(pm, formatOptions(options), deps)
+      },
     )
 
-    if (wantInstallDeps) {
-      await install(depsToInstall)
-      console.log(`✅ Automatic install successfully`)
-    } else {
-      console.log(`❎ ${red("Automatic install failed")}`)
-    }
-  }
+  const reinstall = new Command().alias("reinstall")
+    .description(
+      "reinstall deps",
+    ).option("-g, --global", "Global installation")
+    .option("-C, --dir <dir:string>", "Change to directory <dir>")
+    .option(
+      "-P, --prod",
+      `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
+    )
+    .option(
+      "-D, --dev",
+      `Only ${
+        brightYellow(`devDependencies`)
+      } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
+    )
+    .option(
+      "-r, --recursive",
+      `Run the command for each project in the workspace ${
+        brightYellow("(only pnpm)")
+      }`,
+      { default: true },
+    )
+    .arguments("[...deps:string]").action(async (options, ...deps) => {
+      const node_modules_path = await findUpNodeModulesPath()
+      if (node_modules_path) {
+        await emptyDir(node_modules_path)
+        console.log(`\n${brightGreen("√ clean")} ${gray(node_modules_path)} \n`)
+      }
+      const pm = await findUpDetectPM()
+      await execaInstall(pm, formatOptions(options), deps)
+    })
 
-  return true
-}
-const tasks = [
-  hopeCreateProject,
-  refresh,
-  here,
-  ensureProjectInit,
-  autoInstall,
-  runCommand,
-]
-
-for (const task of tasks) {
-  const fusing = await task()
-
-  if (fusing) {
-    break
-  }
+  await commander
+    .command("i", install)
+    .command(
+      "ri",
+      reinstall,
+    )
+    .parse(Deno.args)
 }

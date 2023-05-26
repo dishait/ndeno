@@ -1,7 +1,9 @@
-import { which as _which } from "https://deno.land/x/which@0.3.0/mod.ts"
+import { which as _which } from 'https://deno.land/x/which@0.3.0/mod.ts';
 
-import { cyan, red, yellow } from "./color.ts"
-import { useThermalFn } from "./cache.ts"
+import { useThermalFn } from './cache.ts';
+import { red, yellow } from './color.ts';
+
+import type { PMS } from "./pm.ts"
 
 const which = useThermalFn(_which)
 
@@ -57,7 +59,18 @@ export async function execa(cmd: string[]) {
   }
 }
 
-export function normalFusing() {
-  console.log(`🥰 all right, ${cyan("have a good time!!")}`)
-  Deno.exit(0)
+export function execaInstall(
+  pm: PMS,
+  deps: string[] = [],
+  options: string[] = [],
+) {
+  const isAdd = deps.length > 1
+  const isYarn = pm === "yarn"
+
+  const cmd = isAdd
+    ? [pm, isYarn ? "add" : "install", ...deps, ...options]
+    : [pm, 'install', ...deps, ...options]
+
+  return execa(cmd)
 }
+
