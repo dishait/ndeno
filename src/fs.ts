@@ -1,18 +1,9 @@
+import { exists } from "https://deno.land/std@0.189.0/fs/exists.ts"
+
 import { dirname, join, slash } from "./path.ts"
 
 export { walk } from "https://deno.land/std@0.189.0/fs/walk.ts"
-
-export async function exist(path: string) {
-  try {
-    await Deno.stat(path)
-    return true
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return false
-    }
-    throw error
-  }
-}
+export { exists } from "https://deno.land/std@0.189.0/fs/exists.ts"
 
 export function createFindUp(target: string) {
   return async function (base: string) {
@@ -26,7 +17,7 @@ export function createFindUp(target: string) {
     }
 
     for (const path of paths) {
-      if (await exist(path)) {
+      if (await exists(path)) {
         return path
       }
     }

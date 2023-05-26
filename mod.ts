@@ -1,6 +1,6 @@
 import { cyan, green, red, yellow } from "./src/color.ts"
 import { extractDeps, extractDepsFromPackageJson } from "./src/extract.ts"
-import { exist, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
+import { exists, findUpNodeModules, findUpPackageJson } from "./src/fs.ts"
 import { listLog } from "./src/log.ts"
 import { join } from "./src/path.ts"
 import { isPackageManager, usePackageManager } from "./src/pm.ts"
@@ -31,7 +31,7 @@ export async function hopeCreateProject() {
 }
 
 export async function ensureProjectInit() {
-  const ignore = Deno.args.length !== 0 || (await exist("package.json"))
+  const ignore = Deno.args.length !== 0 || (await exists("package.json"))
   if (ignore) {
     return false
   }
@@ -113,7 +113,7 @@ async function autoInstall(
 
   const depsNotInstalled = await Promise.all(
     depsInPackageJson.map(async (dep) => {
-      return { name: dep, exist: await exist(join(nodeModulesPath, dep)) }
+      return { name: dep, exist: await exists(join(nodeModulesPath, dep)) }
     }),
   ).then((deps) => deps.filter((dep) => !dep.exist).map((dep) => dep.name))
 

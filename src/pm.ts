@@ -1,7 +1,7 @@
 import { Select } from "https://deno.land/x/cliffy@v0.25.7/mod.ts"
 
 import { creatLocalStorageRef } from "./cache.ts"
-import { exist } from "./fs.ts"
+import { exists } from "./fs.ts"
 
 export type PackageManager = "npm" | "yarn" | "pnpm"
 
@@ -17,9 +17,9 @@ export function usePackageManager() {
     // Check if the value of ref exists
     if (ref.value) return
     // Set the value of ref based on the existence of certain files
-    ref.value = (await exist("pnpm-lock.yaml"))
+    ref.value = (await exists("pnpm-lock.yaml"))
       ? "pnpm"
-      : (await exist("yarn.lock"))
+      : (await exists("yarn.lock"))
       ? "yarn"
       : "npm"
   }
