@@ -64,6 +64,10 @@ if (import.meta.main) {
       `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
     )
     .option(
+      "-w, --workspace-root",
+      `Run the command on the root workspace project ${brightYellow("(only pnpm)")}`
+    )
+    .option(
       "-D, --dev",
       `Only ${
         brightYellow(`devDependencies`)
@@ -71,9 +75,7 @@ if (import.meta.main) {
     )
     .option(
       "-r, --recursive",
-      `Run the command for each project in the workspace ${
-        brightYellow("(only pnpm)")
-      }`,
+      `Run the command for each project in the workspace ${brightYellow("(only pnpm)")}`,
       { default: true },
     )
     .arguments("[...deps:string]")
