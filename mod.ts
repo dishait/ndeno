@@ -33,12 +33,13 @@ function formatOptions(originOptions: Options) {
 }
 
 if (import.meta.main) {
+  const pm = await findUpDetectPM()
+
   const commander = new Command()
     .name("n")
     .version("2.0.0")
-    .description("Command line tool created by deno to manage node projects")
+    .description(`Command line tool created by deno to manage node projects`)
     .action(async () => {
-      const pm = await findUpDetectPM()
       await execaInstall(pm, [], [])
     })
 
@@ -49,7 +50,6 @@ if (import.meta.main) {
       const runCommand = new Command().description(
         `${gray(cv)}`,
       ).action(async () => {
-        const pm = await findUpDetectPM()
         await execa([pm, "run", ck])
       })
       commander.command(ck, runCommand)
@@ -58,7 +58,7 @@ if (import.meta.main) {
 
   const install = new Command()
     .alias("install")
-    .description(`install deps`)
+    .description(`${brightGreen(pm)} install deps`)
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
@@ -81,14 +81,13 @@ if (import.meta.main) {
     .arguments("[...deps:string]")
     .action(
       async (options, ...deps) => {
-        const pm = await findUpDetectPM()
         await execaInstall(pm, formatOptions(options), deps)
       },
     )
 
   const reinstall = new Command().alias("reinstall")
     .description(
-      "reinstall deps",
+      `${brightGreen(pm)} reinstall deps`,
     ).option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
