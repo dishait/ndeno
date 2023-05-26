@@ -4,7 +4,7 @@ import {
   EnumType,
 } from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts"
 
-import { brightGreen, brightYellow, gray, green, yellow } from "./src/color.ts"
+import { brightGreen, brightYellow, gray, yellow } from "./src/color.ts"
 import {
   existsFile,
   findUpDetectPM,
