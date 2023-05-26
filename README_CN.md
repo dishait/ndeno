@@ -55,22 +55,12 @@ n i koa # 等价于 npm install koa，或者 yarn add koa 或者 pnpm add koa
 ```
 
 ```shell
-n i -a # 自动检测文件的依赖并安装
-```
-
-```shell
 n dev # 等价于 npm run dev，或者 yarn dev 或者 pnpm dev
 ```
 
 ```shell
-n here # 发现当前目录的项目管理器
+n -h # 查看当前使用信息
 ```
-
-```shell
-n refresh pnpm # 更新包管理器为 pnpm
-```
-
-所有的命令都是通用的，会通过自动判断选择合适的命令，无需自己操心 🥳
 
 <br />
 
@@ -81,7 +71,14 @@ n refresh pnpm # 更新包管理器为 pnpm
 然后再执行 👇
 
 ```shell
-deno install --allow-read --allow-env --allow-run --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+```
+
+### 卸载
+
+
+```shell
+deno uninstall n
 ```
 
 ## License

@@ -37,20 +37,13 @@ n i express # Amount to npm install express
 ```
 
 ```shell
-n i -a # Automatically deep file dependencies and install
-```
-
-```shell
 n dev # Amount to npm run dev
 ```
 
 ```shell
-n here # Detect the project manager of the current directory
+n -h # View current usage information 
 ```
 
-```shell
-n refresh pnpm # Switch package manager to pnpm
-```
 
 ### uinstall
 
