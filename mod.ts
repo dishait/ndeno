@@ -37,7 +37,7 @@ if (import.meta.main) {
 
   const commander = new Command()
     .name("n")
-    .version("2.0.0")
+    .version("1.0.0")
     .description(`Command line tool created by deno to manage node projects`)
     .action(async () => {
       await execaInstall(pm, [], [])
