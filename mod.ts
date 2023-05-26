@@ -1,11 +1,16 @@
 import { emptyDir } from "https://deno.land/std@0.189.0/fs/empty_dir.ts"
-import { Command } from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts"
-
-import { brightGreen, brightYellow, gray } from "./src/color.ts"
 import {
+  Command,
+  EnumType,
+} from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts"
+
+import { brightGreen, brightYellow, gray, green, yellow } from "./src/color.ts"
+import {
+  existsFile,
   findUpDetectPM,
   findUpNodeModulesPath,
   getPackageCommands,
+  PM_LOCKS,
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
 
@@ -65,7 +70,9 @@ if (import.meta.main) {
     )
     .option(
       "-w, --workspace-root",
-      `Run the command on the root workspace project ${brightYellow("(only pnpm)")}`
+      `Run the command on the root workspace project ${
+        brightYellow("(only pnpm)")
+      }`,
     )
     .option(
       "-D, --dev",
@@ -75,7 +82,9 @@ if (import.meta.main) {
     )
     .option(
       "-r, --recursive",
-      `Run the command for each project in the workspace ${brightYellow("(only pnpm)")}`,
+      `Run the command for each project in the workspace ${
+        brightYellow("(only pnpm)")
+      }`,
       { default: true },
     )
     .arguments("[...deps:string]")
@@ -100,8 +109,26 @@ if (import.meta.main) {
       },
     )
 
+  const pms = Object.keys(PM_LOCKS)
+  const PM_TYPE = new EnumType(pms)
+  const _switch = new Command().alias("switch").description(
+    `switch ${brightGreen(pm)} to ${
+      pms.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
+    }`,
+  ).type(
+    "PM_TYPE",
+    PM_TYPE,
+  ).arguments("<pm:PM_TYPE>").action(async (_, newPM) => {
+    const mayBePmLock = PM_LOCKS[pm]
+    if (await existsFile(mayBePmLock)) {
+      await Deno.remove(mayBePmLock)
+    }
+    await Deno.create(newPM)
+  })
+
   await commander
     .command("i", install)
     .command("ri", reinstall)
+    .command("sw", _switch)
     .parse(Deno.args)
 }

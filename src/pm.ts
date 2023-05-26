@@ -2,7 +2,7 @@ import { createFindUpPaths } from "./path.ts"
 import { exists } from "https://deno.land/std@0.189.0/fs/exists.ts"
 import { resolve } from "https://deno.land/std@0.189.0/path/mod.ts"
 
-function existsFile(path: string) {
+export function existsFile(path: string) {
   return exists(path, {
     isFile: true,
     isReadable: true,
@@ -10,7 +10,7 @@ function existsFile(path: string) {
   })
 }
 
-const CONFIG_FILES = {
+export const PM_LOCKS = {
   yarn: "yarn.lock",
   pnpm: "pnpm-lock.yaml",
   npm: "package-lock.lock",
@@ -18,18 +18,18 @@ const CONFIG_FILES = {
 
 const upPaths = createFindUpPaths(Deno.cwd())
 
-export type PMS = keyof typeof CONFIG_FILES
+export type PMS = keyof typeof PM_LOCKS
 
 export async function detectBasePM(base = Deno.cwd()) {
-  if (await existsFile(resolve(base, CONFIG_FILES.pnpm))) {
+  if (await existsFile(resolve(base, PM_LOCKS.pnpm))) {
     return "pnpm"
   }
 
-  if (await existsFile(resolve(base, CONFIG_FILES.yarn))) {
+  if (await existsFile(resolve(base, PM_LOCKS.yarn))) {
     return "yarn"
   }
 
-  if (await existsFile(resolve(base, CONFIG_FILES.npm))) {
+  if (await existsFile(resolve(base, PM_LOCKS.npm))) {
     return "npm"
   }
 
