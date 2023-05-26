@@ -21,7 +21,7 @@ I hope there is a tool to help me block out npm, yarn and pnpm to manage node pr
 ### install
 
 ```shell
-deno install --allow-read --allow-env --allow-run --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 ### daily
