@@ -39,9 +39,7 @@ if (import.meta.main) {
     .name("n")
     .version("1.0.1")
     .description(`Command line tool created by deno to manage node projects`)
-    .action(async () => {
-      await execaInstall(pm, [], [])
-    })
+    .action(() => execaInstall(pm))
 
   const packageCommands = await getPackageCommands()
   if (packageCommands) {
@@ -86,42 +84,22 @@ if (import.meta.main) {
     )
 
   const reinstall = new Command().alias("reinstall")
-    .description(
-      `${brightGreen(pm)} reinstall deps`,
-    ).option("-g, --global", "Global installation")
-    .option("-C, --dir <dir:string>", "Change to directory <dir>")
-    .option(
-      "-P, --prod",
-      `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
+    .description(`${brightGreen(pm)} reinstall deps`).action(
+      async () => {
+        const node_modules_path = await findUpNodeModulesPath()
+        if (node_modules_path) {
+          await emptyDir(node_modules_path)
+          console.log(
+            `\n${brightGreen("√ clean")} ${gray(node_modules_path)} \n`,
+          )
+        }
+        const pm = await findUpDetectPM()
+        await execaInstall(pm)
+      },
     )
-    .option(
-      "-D, --dev",
-      `Only ${
-        brightYellow(`devDependencies`)
-      } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
-    )
-    .option(
-      "-r, --recursive",
-      `Run the command for each project in the workspace ${
-        brightYellow("(only pnpm)")
-      }`,
-      { default: true },
-    )
-    .arguments("[...deps:string]").action(async (options, ...deps) => {
-      const node_modules_path = await findUpNodeModulesPath()
-      if (node_modules_path) {
-        await emptyDir(node_modules_path)
-        console.log(`\n${brightGreen("√ clean")} ${gray(node_modules_path)} \n`)
-      }
-      const pm = await findUpDetectPM()
-      await execaInstall(pm, formatOptions(options), deps)
-    })
 
   await commander
     .command("i", install)
-    .command(
-      "ri",
-      reinstall,
-    )
+    .command("ri", reinstall)
     .parse(Deno.args)
 }
