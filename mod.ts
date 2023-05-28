@@ -1,3 +1,4 @@
+import { kebabCase } from "npm:scule@1.0.0"
 import { emptyDir } from "https://deno.land/std@0.189.0/fs/empty_dir.ts"
 import {
   Command,
@@ -14,17 +15,12 @@ import {
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
 
-interface Options {
-  global?: true
-  dir?: string
-  prod?: true
-  dev?: true
-  recursive: boolean
-}
+type Options = Record<string, boolean | string>
 
 function formatOptions(originOptions: Options) {
   const options = Object.keys(originOptions).filter((k) => {
-    if (typeof k === "boolean") {
+    const v = originOptions[k]
+    if (typeof v === "boolean") {
       return k
     }
     return false
@@ -33,8 +29,7 @@ function formatOptions(originOptions: Options) {
   if (originOptions.dir) {
     options.push(`--dir=${originOptions.dir}`)
   }
-
-  return options
+  return options.map((o) => kebabCase(o))
 }
 
 if (import.meta.main) {
@@ -65,7 +60,7 @@ if (import.meta.main) {
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
-      "-P, --prod",
+      `-P, --${pm === "pnpm" ? "save-prod" : "prod"}`,
       `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
     )
     .option(
@@ -75,7 +70,7 @@ if (import.meta.main) {
       }`,
     )
     .option(
-      "-D, --dev",
+      `-D, --${pm === "pnpm" ? "save-dev" : "dev"}`,
       `Only ${
         brightYellow(`devDependencies`)
       } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
@@ -85,12 +80,11 @@ if (import.meta.main) {
       `Run the command for each project in the workspace ${
         brightYellow("(only pnpm)")
       }`,
-      { default: true },
     )
     .arguments("[...deps:string]")
     .action(
       async (options, ...deps) => {
-        await execaInstall(pm, formatOptions(options), deps)
+        await execaInstall(pm, deps, formatOptions(options))
       },
     )
 

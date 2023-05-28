@@ -1,7 +1,7 @@
-import { which as _which } from 'https://deno.land/x/which@0.3.0/mod.ts';
+import { which as _which } from "https://deno.land/x/which@0.3.0/mod.ts"
 
-import { useThermalFn } from './cache.ts';
-import { red, yellow } from './color.ts';
+import { useThermalFn } from "./cache.ts"
+import { red, yellow } from "./color.ts"
 
 import type { PMS } from "./pm.ts"
 
@@ -69,8 +69,6 @@ export function execaInstall(
 
   const cmd = isAdd
     ? [pm, isYarn ? "add" : "install", ...deps, ...options]
-    : [pm, 'install', ...deps, ...options]
-
+    : [pm, "install", ...deps, ...options]
   return execa(cmd)
 }
-
