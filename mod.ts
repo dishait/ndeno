@@ -56,13 +56,15 @@ if (import.meta.main) {
     })
   }
 
+  const pnpmFixOption = pm === "pnpm" ? "save-" : ""
+
   const install = new Command()
     .alias("install")
     .description(`${brightGreen(pm)} install deps`)
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
-      `-P, --${pm === "pnpm" ? "save-prod" : "prod"}`,
+      `-P, --${pnpmFixOption}prod`,
       `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
     )
     .option(
@@ -72,10 +74,13 @@ if (import.meta.main) {
       }`,
     )
     .option(
-      `-D, --${pm === "pnpm" ? "save-dev" : "dev"}`,
+      `-D, --${pnpmFixOption}dev`,
       `Only ${
         brightYellow(`devDependencies`)
       } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
+      {
+        conflicts: [`${pnpmFixOption}prod`],
+      },
     )
     .option(
       "-r, --recursive",
