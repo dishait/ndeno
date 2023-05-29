@@ -13,7 +13,7 @@ export function existsFile(path: string) {
 export const PM_LOCKS = {
   yarn: "yarn.lock",
   pnpm: "pnpm-lock.yaml",
-  npm: "package-lock.lock",
+  npm: "package-lock.json",
 }
 
 const upPaths = createFindUpPaths(Deno.cwd())
