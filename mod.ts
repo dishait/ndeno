@@ -12,6 +12,7 @@ import {
   findUpNodeModulesPath,
   getPackageCommands,
   PM_LOCKS,
+  PMS,
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
 
@@ -113,11 +114,12 @@ if (import.meta.main) {
     "PM_TYPE",
     PM_TYPE,
   ).arguments("<pm:PM_TYPE>").action(async (_, newPM) => {
-    const mayBePmLock = PM_LOCKS[pm]
-    if (await existsFile(mayBePmLock)) {
-      await Deno.remove(mayBePmLock)
+    const existedLock = PM_LOCKS[pm]
+    if (await existsFile(existedLock)) {
+      await Deno.remove(existedLock)
     }
-    await Deno.create(newPM)
+    const newLock = PM_LOCKS[newPM as PMS]
+    await Deno.create(newLock)
   })
 
   await commander
