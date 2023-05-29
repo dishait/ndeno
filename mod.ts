@@ -1,5 +1,6 @@
 import { kebabCase } from "npm:scule@1.0.0"
 import { emptyDir } from "https://deno.land/std@0.189.0/fs/empty_dir.ts"
+import { ensureFile } from "https://deno.land/std@0.189.0/fs/ensure_file.ts"
 import {
   Command,
   EnumType,
@@ -125,10 +126,24 @@ if (import.meta.main) {
       await Deno.remove(existedLock)
     }
     const newLock = PM_LOCKS[newPM as PMS]
-    await Deno.create(newLock)
+    await ensureFile(newLock)
   })
 
+  const init = new Command().alias("init").description("init new project")
+    .type(
+      "PM_TYPE",
+      PM_TYPE,
+    ).arguments("<pm:PM_TYPE>")
+    .action(async (_, newPM) => {
+      const newLock = PM_LOCKS[newPM as PMS]
+      await Promise.all([
+        ensureFile(newLock),
+        ensureFile("package.json"),
+      ])
+    })
+
   await commander
+    .command("in", init)
     .command("i", install)
     .command("ri", reinstall)
     .command("sw", _switch)
