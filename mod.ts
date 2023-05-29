@@ -15,6 +15,7 @@ import {
   PMS,
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
+import { version } from "./src/version.ts"
 
 type Options = Record<string, boolean | string>
 
@@ -38,7 +39,7 @@ if (import.meta.main) {
 
   const commander = new Command()
     .name("n")
-    .version("1.1.2")
+    .version(version)
     .description(`Command line tool created by deno to manage node projects`)
     .action(() => execaInstall(pm))
 
