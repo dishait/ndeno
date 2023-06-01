@@ -1,6 +1,6 @@
-import { kebabCase } from "npm:scule@1.0.0"
-import { emptyDir } from "https://deno.land/std@0.189.0/fs/empty_dir.ts"
-import { ensureFile } from "https://deno.land/std@0.189.0/fs/ensure_file.ts"
+import kebabCase from "https://deno.land/x/case@2.1.1/paramCase.ts";
+import { emptyDir } from "https://deno.land/std@0.190.0/fs/empty_dir.ts"
+import { ensureFile } from "https://deno.land/std@0.190.0/fs/ensure_file.ts"
 import {
   Command,
   EnumType,
