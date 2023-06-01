@@ -1,6 +1,7 @@
 # ndeno
 
-Command line tool created by [deno](https://deno.land/) to manage node projects (Unified)
+Command line tool created by [deno](https://deno.land/) to manage node projects
+(Unified)
 
 <br />
 
@@ -12,7 +13,8 @@ English | [简体中文](./README_CN.md)
 
 ## Motivation
 
-I hope there is a tool to help me block out npm, yarn and pnpm to manage node projects
+I hope there is a tool to help me block out npm, yarn and pnpm to manage node
+projects
 
 <br />
 
@@ -22,6 +24,12 @@ I hope there is a tool to help me block out npm, yarn and pnpm to manage node pr
 
 ```shell
 deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+```
+
+Of course, if you don't have Deno installed 👇
+
+```shell
+npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 ### daily
@@ -41,9 +49,8 @@ n dev # Amount to npm run dev
 ```
 
 ```shell
-n -h # View current usage information 
+n -h # View current usage information
 ```
-
 
 ### uinstall
 
