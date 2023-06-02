@@ -28,12 +28,11 @@ function formatOptions(originOptions: Options) {
       return k
     }
     return false
-  }).map((k) => `--${k}`)
-
+  })
   if (originOptions.dir) {
     options.push(`--dir=${originOptions.dir}`)
   }
-  return options.map((o) => kebabCase(o))
+  return options.map((o) => `--${kebabCase(o)}`)
 }
 
 if (import.meta.main) {

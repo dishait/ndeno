@@ -64,11 +64,8 @@ export function execaInstall(
   deps: string[] = [],
   options: string[] = [],
 ) {
-  const isAdd = deps.length > 1
   const isYarn = pm === "yarn"
-
-  const cmd = isAdd
-    ? [pm, isYarn ? "add" : "install", ...deps, ...options]
-    : [pm, "install", ...deps, ...options]
-  return execa(cmd)
+  return execa(
+    [pm, isYarn ? "add" : "install", ...deps, ...options],
+  )
 }
