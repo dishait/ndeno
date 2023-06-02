@@ -56,14 +56,21 @@ export async function findUpNodeModulesPath() {
 }
 
 export async function getPackageCommands() {
-  if (await existsFile('package.json')) {
-    const packageText = await Deno.readTextFile('package.json')
+  if (await existsFile("package.json")) {
+    const packageText = await Deno.readTextFile("package.json")
     try {
-       const scripts = JSON.parse(packageText)['scripts'] || {}
+      const scripts = JSON.parse(packageText)["scripts"] || {}
       return scripts as Record<string, string>
     } catch (_) {
       return null
     }
   }
   return null
+}
+
+export async function ensurePackageJson(text = "{}") {
+  const file = "package.json"
+  if (!existsFile(file)) {
+    await Deno.writeTextFile(file, text)
+  }
 }

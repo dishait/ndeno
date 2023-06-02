@@ -1,4 +1,4 @@
-import kebabCase from "https://deno.land/x/case@2.1.1/paramCase.ts";
+import kebabCase from "https://deno.land/x/case@2.1.1/paramCase.ts"
 import { emptyDir } from "https://deno.land/std@0.190.0/fs/empty_dir.ts"
 import { ensureFile } from "https://deno.land/std@0.190.0/fs/ensure_file.ts"
 import {
@@ -8,6 +8,7 @@ import {
 
 import { brightGreen, brightYellow, gray, yellow } from "./src/color.ts"
 import {
+  ensurePackageJson,
   existsFile,
   findUpDetectPM,
   findUpNodeModulesPath,
@@ -42,7 +43,10 @@ if (import.meta.main) {
     .name("n")
     .version(version)
     .description(`Command line tool created by deno to manage node projects`)
-    .action(() => execaInstall(pm))
+    .action(async () => {
+      await ensurePackageJson()
+      execaInstall(pm)
+    })
 
   const packageCommands = await getPackageCommands()
   if (packageCommands) {
@@ -138,7 +142,7 @@ if (import.meta.main) {
       const newLock = PM_LOCKS[newPM as PMS]
       await Promise.all([
         ensureFile(newLock),
-        ensureFile("package.json"),
+        ensurePackageJson(),
       ])
     })
 
