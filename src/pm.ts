@@ -1,6 +1,5 @@
+import { exists, resolve } from "./deps.ts"
 import { createFindUpPaths } from "./path.ts"
-import { exists } from "https://deno.land/std@0.190.0/fs/exists.ts"
-import { resolve } from "https://deno.land/std@0.190.0/path/mod.ts"
 
 export function existsFile(path: string) {
   return exists(path, {

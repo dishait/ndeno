@@ -1,7 +1,6 @@
-import { which as _which } from "https://deno.land/x/which@0.3.0/mod.ts"
+import { red, which as _which, yellow } from "./deps.ts"
 
 import { useThermalFn } from "./cache.ts"
-import { red, yellow } from "./color.ts"
 
 import type { PMS } from "./pm.ts"
 

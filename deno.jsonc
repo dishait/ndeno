@@ -16,5 +16,6 @@
   },
   "compilerOptions": {
     "types": ["npm:@types/node"]
-  }
+  },
+  "lock": true
 }

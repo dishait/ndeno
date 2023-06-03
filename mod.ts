@@ -1,12 +1,15 @@
-import kebabCase from "https://deno.land/x/case@2.1.1/paramCase.ts"
-import { emptyDir } from "https://deno.land/std@0.190.0/fs/empty_dir.ts"
-import { ensureFile } from "https://deno.land/std@0.190.0/fs/ensure_file.ts"
 import {
+  brightGreen,
+  brightYellow,
   Command,
+  emptyDir,
+  ensureFile,
   EnumType,
-} from "https://deno.land/x/cliffy@v0.25.7/command/mod.ts"
+  gray,
+  kebabCase,
+  yellow,
+} from "./src/deps.ts"
 
-import { brightGreen, brightYellow, gray, yellow } from "./src/color.ts"
 import {
   ensurePackageJson,
   existsFile,
