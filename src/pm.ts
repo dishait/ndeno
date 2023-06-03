@@ -69,7 +69,7 @@ export async function getPackageCommands() {
 
 export async function ensurePackageJson(text = "{}") {
   const file = "package.json"
-  if (!existsFile(file)) {
+  if (!await existsFile(file)) {
     await Deno.writeTextFile(file, text)
   }
 }
