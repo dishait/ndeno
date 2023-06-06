@@ -65,6 +65,9 @@ export function execaInstall(
 ) {
 
   const isYarn = pm === "yarn"
+  if (isYarn && deps.length === 0) {
+    return execa([pm, ...options])
+  }
   return execa(
     [pm, isYarn ? "add" : "install", ...deps, ...options],
   )
