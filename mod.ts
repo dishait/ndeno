@@ -6,18 +6,16 @@ import {
   ensureFile,
   EnumType,
   gray,
-  kebabCase,
   yellow,
 } from "./src/deps.ts"
-
 import {
   ensurePackageJson,
   existsFile,
   findUpDetectPM,
   findUpNodeModulesPath,
   getPackageCommands,
+  PM,
   PM_LOCKS,
-  PMS,
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
 import { version } from "./src/version.ts"
@@ -26,16 +24,23 @@ type Options = Record<string, boolean | string>
 
 function formatOptions(originOptions: Options) {
   const options = Object.keys(originOptions).filter((k) => {
-    const v = originOptions[k]
-    if (typeof v === "boolean") {
-      return k
+    if (typeof originOptions[k] === "boolean") {
+      return true
     }
     return false
   })
   if (originOptions.dir) {
     options.push(`--dir=${originOptions.dir}`)
   }
-  return options.map((o) => `--${kebabCase(o)}`)
+  return options.map((o) => {
+    if (o === "dev") {
+      return "-D"
+    }
+    if (o === "prod") {
+      return "-P"
+    }
+    return o
+  })
 }
 
 if (import.meta.main) {
@@ -63,15 +68,13 @@ if (import.meta.main) {
     })
   }
 
-  const pnpmFixOption = pm === "pnpm" ? "save-" : ""
-
   const install = new Command()
     .alias("install")
     .description(`${brightGreen(pm)} install deps`)
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
-      `-P, --${pnpmFixOption}prod`,
+      `-P, --prod`,
       `Packages in ${brightYellow(`devDependencies`)} won't be installed`,
     )
     .option(
@@ -81,12 +84,12 @@ if (import.meta.main) {
       }`,
     )
     .option(
-      `-D, --${pnpmFixOption}dev`,
+      `-D, --dev`,
       `Only ${
         brightYellow(`devDependencies`)
       } are installed regardless of the ${brightGreen(`NODE_ENV`)}`,
       {
-        conflicts: [`${pnpmFixOption}prod`],
+        conflicts: [`prod`],
       },
     )
     .option(
@@ -117,11 +120,11 @@ if (import.meta.main) {
       },
     )
 
-  const pms = Object.keys(PM_LOCKS)
-  const PM_TYPE = new EnumType(pms)
+  const PM = Object.keys(PM_LOCKS)
+  const PM_TYPE = new EnumType(PM)
   const _switch = new Command().alias("switch").description(
     `switch ${brightGreen(pm)} to ${
-      pms.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
+      PM.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
     }`,
   ).type(
     "PM_TYPE",
@@ -131,7 +134,7 @@ if (import.meta.main) {
     if (await existsFile(existedLock)) {
       await Deno.remove(existedLock)
     }
-    const newLock = PM_LOCKS[newPM as PMS]
+    const newLock = PM_LOCKS[newPM as PM]
     await ensureFile(newLock)
   })
 
@@ -141,7 +144,7 @@ if (import.meta.main) {
       PM_TYPE,
     ).arguments("<pm:PM_TYPE>")
     .action(async (_, newPM) => {
-      const newLock = PM_LOCKS[newPM as PMS]
+      const newLock = PM_LOCKS[newPM as PM]
       await Promise.all([
         ensureFile(newLock),
         ensurePackageJson(),

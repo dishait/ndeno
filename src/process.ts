@@ -2,7 +2,7 @@ import { red, which as _which, yellow } from "./deps.ts"
 
 import { useThermalFn } from "./cache.ts"
 
-import type { PMS } from "./pm.ts"
+import type { PM } from "./pm.ts"
 
 const which = useThermalFn(_which)
 
@@ -59,10 +59,11 @@ export async function execa(cmd: string[]) {
 }
 
 export function execaInstall(
-  pm: PMS,
+  pm: PM,
   deps: string[] = [],
   options: string[] = [],
 ) {
+
   const isYarn = pm === "yarn"
   return execa(
     [pm, isYarn ? "add" : "install", ...deps, ...options],

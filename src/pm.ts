@@ -17,7 +17,7 @@ export const PM_LOCKS = {
 
 const upPaths = createFindUpPaths(Deno.cwd())
 
-export type PMS = keyof typeof PM_LOCKS
+export type PM = keyof typeof PM_LOCKS
 
 export async function detectBasePM(base = Deno.cwd()) {
   if (await existsFile(resolve(base, PM_LOCKS.pnpm))) {
