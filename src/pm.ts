@@ -54,6 +54,15 @@ export async function findUpNodeModulesPath() {
   }
 }
 
+export async function findUpLock(pm: PM = "npm") {
+  for (const upPath of upPaths) {
+    const path = resolve(upPath, PM_LOCKS[pm])
+    if (await existsFile(path)) {
+      return path
+    }
+  }
+}
+
 export async function getPackageCommands() {
   if (await existsFile("package.json")) {
     const packageText = await Deno.readTextFile("package.json")

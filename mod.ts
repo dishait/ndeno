@@ -12,6 +12,7 @@ import {
   ensurePackageJson,
   existsFile,
   findUpDetectPM,
+  findUpLock,
   findUpNodeModulesPath,
   getPackageCommands,
   PM,
@@ -106,8 +107,21 @@ if (import.meta.main) {
     )
 
   const reinstall = new Command().alias("reinstall")
-    .description(`${brightGreen(pm)} reinstall deps`).action(
-      async () => {
+    .description(`${brightGreen(pm)} reinstall deps`).option(
+      "-w, --withLock",
+      "with lock",
+      {
+        default: false,
+      },
+    ).action(
+      async ({ withLock }) => {
+        if (withLock) {
+          const lock = await findUpLock(pm)
+          if (lock) {
+            await Deno.remove(lock)
+          }
+        }
+
         const node_modules_path = await findUpNodeModulesPath()
         if (node_modules_path) {
           await emptyDir(node_modules_path)
@@ -115,16 +129,15 @@ if (import.meta.main) {
             `\n${brightGreen("√ clean")} ${gray(node_modules_path)} \n`,
           )
         }
-        const pm = await findUpDetectPM()
         await execaInstall(pm)
       },
     )
 
-  const PM = Object.keys(PM_LOCKS)
-  const PM_TYPE = new EnumType(PM)
+  const PMS = Object.keys(PM_LOCKS)
+  const PM_TYPE = new EnumType(PMS)
   const _switch = new Command().alias("switch").description(
     `switch ${brightGreen(pm)} to ${
-      PM.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
+      PMS.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
     }`,
   ).type(
     "PM_TYPE",
