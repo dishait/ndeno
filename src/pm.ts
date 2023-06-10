@@ -1,3 +1,4 @@
+import type { PM } from "./type.ts"
 import { exists, resolve } from "./deps.ts"
 import { createFindUpPaths } from "./path.ts"
 
@@ -16,8 +17,6 @@ export const PM_LOCKS = {
 }
 
 const upPaths = createFindUpPaths(Deno.cwd())
-
-export type PM = keyof typeof PM_LOCKS
 
 export async function detectBasePM(base = Deno.cwd()) {
   if (await existsFile(resolve(base, PM_LOCKS.pnpm))) {

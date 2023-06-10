@@ -1,33 +1,33 @@
-type AnyFunction = (...args: any) => any;
+import type { AnyFunction } from "./type.ts"
 
-let kv: Deno.Kv;
+let kv: Deno.Kv
 export function useThermalFn<T extends AnyFunction>(
   fn: T,
   prefix = "ndeno",
 ) {
-  const fnKey = fn.toString();
-  const originKeys = [fnKey];
+  const fnKey = fn.toString()
+  const originKeys = [fnKey]
   if (prefix) {
-    originKeys.unshift(prefix);
+    originKeys.unshift(prefix)
   }
 
   return async function invoke(
     ...rest: Parameters<T>
   ): Promise<ReturnType<T>> {
     if (!kv) {
-      kv = await Deno.openKv();
+      kv = await Deno.openKv()
     }
-    const keys = [...originKeys, ...rest].flat();
+    const keys = [...originKeys, ...rest].flat()
 
-    const { value } = await kv.get(keys);
+    const { value } = await kv.get(keys)
 
     if (value) {
-      return value as ReturnType<T>;
+      return value as ReturnType<T>
     }
 
-    const newValue = await fn.apply(null, rest);
-    kv.set(keys, newValue);
+    const newValue = await fn.apply(null, rest)
+    kv.set(keys, newValue)
 
-    return newValue;
-  };
+    return newValue
+  }
 }

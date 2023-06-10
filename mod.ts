@@ -15,13 +15,12 @@ import {
   findUpLock,
   findUpNodeModulesPath,
   getPackageCommands,
-  PM,
   PM_LOCKS,
 } from "./src/pm.ts"
 import { execa, execaInstall } from "./src/process.ts"
 import { version } from "./src/version.ts"
 
-type Options = Record<string, boolean | string>
+import type { Options, PM } from "./src/type.ts"
 
 function formatOptions(originOptions: Options) {
   const options = Object.keys(originOptions).filter((k) => {

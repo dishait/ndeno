@@ -2,7 +2,7 @@ import { which as _which } from "./deps.ts"
 
 import { useThermalFn } from "./cache.ts"
 
-import type { PM } from "./pm.ts"
+import type { AnyFunction, PM } from "./type.ts"
 
 const which = useThermalFn(_which)
 
@@ -47,9 +47,9 @@ export function execaInstall(
   )
 }
 
-export function gracefulShutdown(shutdown: (...args: any) => any) {
-  function exitWithShoutdown() {
-    shutdown()
+export function gracefulShutdown(shutdown: AnyFunction) {
+  async function exitWithShoutdown() {
+    await shutdown()
     Deno.exit(130)
   }
 
