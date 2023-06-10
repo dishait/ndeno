@@ -48,6 +48,11 @@ export function execaInstall(
   )
 }
 
+export function execaUnInstall(pm: PM, deps: string[]) {
+  const isNpm = pm === "npm"
+  return execa([pm, isNpm ? "uninstall" : "remove", ...deps])
+}
+
 export function gracefulShutdown(shutdown: AnyFunction) {
   async function exitWithShoutdown() {
     await shutdown()

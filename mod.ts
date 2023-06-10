@@ -17,7 +17,7 @@ import {
   getPackageCommands,
   PM_LOCKS,
 } from "./src/pm.ts"
-import { execa, execaInstall } from "./src/process.ts"
+import { execa, execaInstall, execaUnInstall } from "./src/process.ts"
 import { version } from "./src/version.ts"
 
 import type { Options, PM } from "./src/type.ts"
@@ -163,10 +163,17 @@ if (import.meta.main) {
       ])
     })
 
+  const uninstall = new Command().alias("uninstall").alias("rm").description(
+    `${brightGreen(pm)} uninstall deps`,
+  ).arguments("<...deps:string>").action(async (_, ...deps) => {
+    await execaUnInstall(pm, deps)
+  })
+
   await commander
     .command("in", init)
     .command("i", install)
     .command("ri", reinstall)
+    .command("un", uninstall)
     .command("sw", _switch)
     .parse(Deno.args)
 }
