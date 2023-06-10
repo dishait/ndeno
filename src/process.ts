@@ -6,7 +6,7 @@ import type { AnyFunction, PM } from "./type.ts"
 
 const which = useThermalFn(_which)
 
-export async function execa(cmd: string[]) {
+export async function execa(cmd: string[], options: Deno.CommandOptions = {}) {
   const command = await which(cmd.shift()!)
 
   const commander = new Deno.Command(command!, {
@@ -14,6 +14,7 @@ export async function execa(cmd: string[]) {
     stdin: "inherit",
     stderr: "inherit",
     stdout: "inherit",
+    ...options,
   })
 
   let resolved = false
