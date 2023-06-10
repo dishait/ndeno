@@ -1,4 +1,4 @@
-import { red, which as _which, yellow } from "./deps.ts"
+import { which as _which } from "./deps.ts"
 
 import { useThermalFn } from "./cache.ts"
 
@@ -17,43 +17,18 @@ export async function execa(cmd: string[]) {
   })
 
   let resolved = false
-  function childExit() {
+  const process = commander.spawn()
+  const removeShutdownEvent = gracefulShutdown(() => {
     if (!resolved) {
-      // No need to manually pass in signo
       process.kill()
       resolved = true
+      removeShutdownEvent()
     }
-  }
-
-  // watch ctrl + c
-  Deno.addSignalListener("SIGINT", () => {
-    console.log(
-      `❎ The task was ${yellow("manually interrupted")}`,
-    )
-    childExit()
-    Deno.exit(130)
   })
-
-  // Prevent accidental exit
-  globalThis.addEventListener("error", () => {
-    childExit()
-  })
-
-  globalThis.addEventListener("unhandledrejection", () => {
-    childExit()
-  })
-
-  globalThis.addEventListener("unload", () => {
-    childExit()
-  })
-
-  const process = commander.spawn()
-
   const { success, code } = await process.status
   resolved = true
-
+  removeShutdownEvent()
   if (!success) {
-    console.log(`❎ ${red("Task execution failed")}`)
     Deno.exit(code)
   }
 }
@@ -63,7 +38,6 @@ export function execaInstall(
   deps: string[] = [],
   options: string[] = [],
 ) {
-
   const isYarn = pm === "yarn"
   if (isYarn && deps.length === 0) {
     return execa([pm, ...options])
@@ -71,4 +45,27 @@ export function execaInstall(
   return execa(
     [pm, isYarn ? "add" : "install", ...deps, ...options],
   )
+}
+
+export function gracefulShutdown(shutdown: (...args: any) => any) {
+  function exitWithShoutdown() {
+    shutdown()
+    Deno.exit(130)
+  }
+
+  // Synchronization error
+  globalThis.addEventListener("error", shutdown)
+  // Main process exit
+  globalThis.addEventListener("unload", shutdown)
+  // Asynchronous error
+  globalThis.addEventListener("unhandledrejection", shutdown)
+
+  Deno.addSignalListener("SIGINT", exitWithShoutdown)
+
+  return function removeShutdownEvent() {
+    globalThis.removeEventListener("error", shutdown)
+    globalThis.removeEventListener("unload", shutdown)
+    globalThis.removeEventListener("unhandledrejection", shutdown)
+    Deno.removeSignalListener("SIGINT", exitWithShoutdown)
+  }
 }
