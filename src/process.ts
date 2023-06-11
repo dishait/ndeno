@@ -23,7 +23,6 @@ export async function execa(cmd: string[], options: Deno.CommandOptions = {}) {
     if (!resolved) {
       process.kill()
       resolved = true
-      removeShutdownEvent()
     }
   })
   const { success, code } = await process.status
@@ -53,18 +52,26 @@ export function execaUnInstall(pm: PM, deps: string[]) {
   return execa([pm, isNpm ? "uninstall" : "remove", ...deps])
 }
 
-export function gracefulShutdown(shutdown: AnyFunction) {
+export function gracefulShutdown(
+  shutdown: AnyFunction,
+  options: AddEventListenerOptions = {
+    once: true,
+  },
+) {
   async function exitWithShoutdown() {
     await shutdown()
+    if (options.once) {
+      Deno.addSignalListener("SIGINT", exitWithShoutdown)
+    }
     Deno.exit(130)
   }
 
   // Synchronization error
-  globalThis.addEventListener("error", shutdown)
+  globalThis.addEventListener("error", shutdown, options)
   // Main process exit
-  globalThis.addEventListener("unload", shutdown)
+  globalThis.addEventListener("unload", shutdown, options)
   // Asynchronous error
-  globalThis.addEventListener("unhandledrejection", shutdown)
+  globalThis.addEventListener("unhandledrejection", shutdown, options)
 
   Deno.addSignalListener("SIGINT", exitWithShoutdown)
 
