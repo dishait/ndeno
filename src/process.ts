@@ -19,7 +19,7 @@ export async function execa(cmd: string[], options: Deno.CommandOptions = {}) {
 
   let resolved = false
   const process = commander.spawn()
-  const removeShutdownEvent = gracefulShutdown(() => {
+  const ensureCleanEvents = gracefulShutdown(() => {
     if (!resolved) {
       process.kill()
       resolved = true
@@ -27,7 +27,7 @@ export async function execa(cmd: string[], options: Deno.CommandOptions = {}) {
   })
   const { success, code } = await process.status
   resolved = true
-  removeShutdownEvent()
+  ensureCleanEvents()
   if (!success) {
     Deno.exit(code)
   }
@@ -75,7 +75,7 @@ export function gracefulShutdown(
 
   Deno.addSignalListener("SIGINT", exitWithShoutdown)
 
-  return function removeShutdownEvent() {
+  return function ensureCleanEvents() {
     globalThis.removeEventListener("error", shutdown)
     globalThis.removeEventListener("unload", shutdown)
     globalThis.removeEventListener("unhandledrejection", shutdown)
