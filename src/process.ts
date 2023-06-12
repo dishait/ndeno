@@ -25,12 +25,10 @@ export async function execa(cmd: string[], options: Deno.CommandOptions = {}) {
       resolved = true
     }
   })
-  const { success, code } = await process.status
-  resolved = true
-  ensureCleanEvents()
-  if (!success) {
-    Deno.exit(code)
-  }
+  return process.status.finally(() => {
+    resolved = true
+    ensureCleanEvents()
+  })
 }
 
 export function execaInstall(
