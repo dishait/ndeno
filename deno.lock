@@ -94,6 +94,10 @@
     "https://deno.land/x/cliffy@v0.25.7/table/row.ts": "5f519ba7488d2ef76cbbf50527f10f7957bfd668ce5b9169abbc44ec88302645",
     "https://deno.land/x/cliffy@v0.25.7/table/table.ts": "ec204c9d08bb3ff1939c5ac7412a4c9ed7d00925d4fc92aff9bfe07bd269258d",
     "https://deno.land/x/cliffy@v0.25.7/table/utils.ts": "187bb7dcbcfb16199a5d906113f584740901dfca1007400cba0df7dcd341bc29",
+    "https://deno.land/x/easy_std@v0.2.0/src/deps.ts": "6de35fdec3aa54cb2c090c853e2bae78c57c3c7a4f6f4f72aaf35dd62d97d5a7",
+    "https://deno.land/x/easy_std@v0.2.0/src/fn.ts": "6740b6083c056724c663cc4a84b0c208cbd716240904eda0974997f950b172b5",
+    "https://deno.land/x/easy_std@v0.2.0/src/listener.ts": "5e65f73aaf1005b0eee24e7e099db823efc0bae5eb6f220a39ad948785df5e37",
+    "https://deno.land/x/easy_std@v0.2.0/src/process.ts": "8f42c8a5d7a9becfdefdc58a7d613a45a9c2bd6dfacbc87b6e2f62614c68e29b",
     "https://deno.land/x/which@0.3.0/mod.ts": "3e10d07953c14e4ddc809742a3447cef14202cdfe9be6678a1dfc8769c4487e6"
   },
   "npm": {
