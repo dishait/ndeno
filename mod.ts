@@ -5,6 +5,7 @@ import {
   emptyDir,
   ensureFile,
   EnumType,
+  execa,
   gray,
   yellow,
 } from "./src/deps.ts"
@@ -17,8 +18,8 @@ import {
   getPackageCommands,
   PM_LOCKS,
 } from "./src/pm.ts"
-import { execa, execaInstall, execaUnInstall } from "./src/process.ts"
 import { version } from "./src/version.ts"
+import { execaInstall, execaUnInstall } from "./src/process.ts"
 
 import type { Options, PM } from "./src/type.ts"
 

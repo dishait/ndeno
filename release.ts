@@ -1,4 +1,4 @@
-import { execa } from "./src/process.ts"
+import { execa } from "./src/deps.ts"
 
 const versionFile = "./src/version.ts"
 
