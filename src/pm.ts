@@ -1,83 +1,35 @@
-import type { PM } from "./type.ts"
-import { exists, resolve } from "./deps.ts"
-import { createFindUpPaths } from "./path.ts"
-
-export function existsFile(path: string) {
-  return exists(path, {
-    isFile: true,
-    isReadable: true,
-    isDirectory: false,
-  })
-}
-
-export const PM_LOCKS = {
-  yarn: "yarn.lock",
-  pnpm: "pnpm-lock.yaml",
-  npm: "package-lock.json",
-}
-
-const upPaths = createFindUpPaths(Deno.cwd())
-
-export async function detectBasePM(base = Deno.cwd()) {
-  if (await existsFile(resolve(base, PM_LOCKS.pnpm))) {
-    return "pnpm"
-  }
-
-  if (await existsFile(resolve(base, PM_LOCKS.yarn))) {
-    return "yarn"
-  }
-
-  if (await existsFile(resolve(base, PM_LOCKS.npm))) {
-    return "npm"
-  }
-
-  return null
-}
-
-export async function findUpDetectPM() {
-  for (const upPath of upPaths) {
-    const pm = await detectBasePM(upPath)
-    if (pm) {
-      return pm
-    }
-  }
-  return "npm"
-}
-
-export async function findUpNodeModulesPath() {
-  for (const upPath of upPaths) {
-    const path = resolve(upPath, "node_modules")
-    if (await exists(path)) {
-      return path
-    }
-  }
-}
-
-export async function findUpLock(pm: PM = "npm") {
-  for (const upPath of upPaths) {
-    const path = resolve(upPath, PM_LOCKS[pm])
-    if (await existsFile(path)) {
-      return path
-    }
-  }
-}
+import type { PM } from "./constant.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.4.1/src/process.ts"
 
 export async function getPackageCommands() {
-  if (await existsFile("package.json")) {
+  try {
     const packageText = await Deno.readTextFile("package.json")
-    try {
-      const scripts = JSON.parse(packageText)["scripts"] || {}
-      return scripts as Record<string, string>
-    } catch (_) {
+    const scripts = JSON.parse(packageText)["scripts"] || {}
+    return scripts as Record<string, string>
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
       return null
     }
+
+    throw error
   }
-  return null
 }
 
-export async function ensurePackageJson(text = "{}") {
-  const file = "package.json"
-  if (!await existsFile(file)) {
-    await Deno.writeTextFile(file, text)
+export function install(
+  pm: PM,
+  deps: string[] = [],
+  options: string[] = [],
+) {
+  const isYarn = pm === "yarn"
+  if (isYarn && deps.length === 0) {
+    return execa([pm, ...options])
   }
+  return execa(
+    [pm, isYarn ? "add" : "install", ...deps, ...options],
+  )
+}
+
+export function unInstall(pm: PM, deps: string[]) {
+  const isNpm = pm === "npm"
+  return execa([pm, isNpm ? "uninstall" : "remove", ...deps])
 }
