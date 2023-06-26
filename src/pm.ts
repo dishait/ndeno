@@ -10,7 +10,9 @@ export async function getPackageCommands() {
     if (error instanceof Deno.errors.NotFound) {
       return null
     }
-
+    if (error instanceof SyntaxError) {
+      return null
+    }
     throw error
   }
 }
