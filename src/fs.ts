@@ -15,9 +15,10 @@ export async function findUp(files: string[]) {
   for (const upPath of upPaths) {
     for (const file of files) {
       const path = join(upPath, file)
-      if (await exists(path)) {
+      if (await exists(path, { isFile: true })) {
         return path
       }
     }
   }
+  return null
 }

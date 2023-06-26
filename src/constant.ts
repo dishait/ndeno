@@ -6,7 +6,6 @@ export enum pmLock {
 
 export enum lockPM {
   "yarn.lock" = "yarn",
-
   "pnpm-lock.yaml" = "pnpm",
   "package-lock.json" = "npm",
 }

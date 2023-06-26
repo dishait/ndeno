@@ -12,7 +12,8 @@
 
 ## 动机
 
-希望有一个命令工具可以抹平 `npm`，`yarn`，`pnpm` 等 `node` 项目包管理器在使用时的差异。
+希望有一个命令工具可以抹平 `npm`，`yarn`，`pnpm` 等 `node`
+项目包管理器在使用时的差异。
 
 <br />
 
@@ -36,7 +37,8 @@ yarn add koa # 允许
 
 但是在 `pnpm` 中，`install` 和 `add` 都是允许的。
 
-特别是在运行开源项目时，我需要不断通过记忆去判断我究竟该执行哪些命令，哪些命令是该项目不被允许的 😢
+特别是在运行开源项目时，我需要不断通过记忆去判断我究竟该执行哪些命令，哪些命令是该项目不被允许的
+😢
 
 更疯狂的是我在多个项目中来回切换时，`npm`，`yarn`，`pnpm` 困扰着我。
 
@@ -44,7 +46,8 @@ yarn add koa # 允许
 
 ## 使用
 
-使用 [ndeno](https://github.com/dishait/ndeno) 是足够简单的，一切命令都被自动判断并抹平了 🥰
+使用 [ndeno](https://github.com/dishait/ndeno)
+是足够简单的，一切命令都被自动判断并抹平了 🥰
 
 ```shell
 n # 等价于 npm install，或者 yarn 或者 pnpm install
@@ -66,7 +69,8 @@ n -h # 查看当前使用信息
 
 ## 实现
 
-该工具是由 [deno](https://deno.land/) 构建而成的，换言之你需要先安装 👉 [deno](https://deno.land/manual@v1.28.3/getting_started/installation)
+该工具是由 [deno](https://deno.land/) 构建而成的，换言之你需要先安装 👉
+[deno](https://deno.land/manual@v1.28.3/getting_started/installation)
 
 然后再执行 👇
 
@@ -82,7 +86,6 @@ npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstab
 
 ### 卸载
 
-
 ```shell
 deno uninstall n
 ```
@@ -91,4 +94,5 @@ deno uninstall n
 
 Made with [markthree](https://github.com/markthree)
 
-Published under [MIT License](https://github.com/dishait/ndeno/blob/main/LICENSE).
+Published under
+[MIT License](https://github.com/dishait/ndeno/blob/main/LICENSE).
