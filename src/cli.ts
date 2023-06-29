@@ -37,6 +37,11 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
       return "-P"
     }
     return o
+  }).map((o) => {
+    if (o.startsWith("-")) {
+      return o
+    }
+    return `--${o}`
   })
 }
 
