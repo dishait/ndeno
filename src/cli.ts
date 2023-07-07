@@ -18,6 +18,7 @@ import {
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
+import { exists } from "https://deno.land/std@0.193.0/fs/exists.ts"
 
 function formatOptions(originOptions: Record<string, string | boolean>) {
   const options = Object.keys(originOptions).filter((k) => {
@@ -111,6 +112,10 @@ export async function action(currentPM: PM) {
           if (lock) {
             await Deno.remove(lock)
           }
+        }
+
+        if (await exists(".nuxt")) {
+          await emptyDir(".nuxt")
         }
 
         const node_modules_path = await findUp(["node_modules"])

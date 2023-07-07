@@ -5,9 +5,7 @@
     "install": "deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n mod.ts"
   },
   "fmt": {
-    "options": {
-      "semiColons": false
-    }
+    "semiColons": false
   },
   "lock": true
 }
