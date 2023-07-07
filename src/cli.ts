@@ -8,7 +8,7 @@ import { emptyDir } from "https://deno.land/std@0.193.0/fs/empty_dir.ts"
 import { ensureFile } from "https://deno.land/std@0.193.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.2/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.2/command/types/enum.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.4.5/src/process.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.4.6/src/process.ts"
 
 import { type PM, pmLock, pms } from "./constant.ts"
 import { existsFile, findUp } from "./fs.ts"
