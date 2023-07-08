@@ -54,9 +54,9 @@ export async function action(currentPM: PM) {
 
   const packageCommands = await getPackageCommands()
   if (packageCommands) {
-    Object.keys(packageCommands).forEach((ck) => {
+    Object.keys(packageCommands).forEach((ck, index) => {
       const cv = packageCommands[ck]
-      const runCommand = new Command().description(
+      const runCommand = new Command().alias(String(index)).description(
         `${gray(cv)}`,
       ).action(() => execa([currentPM, "run", ck]))
       commander.command(ck, runCommand)
