@@ -3,11 +3,11 @@ import {
   brightYellow,
   gray,
   yellow,
-} from "https://deno.land/std@0.193.0/fmt/colors.ts"
-import { emptyDir } from "https://deno.land/std@0.193.0/fs/empty_dir.ts"
-import { ensureFile } from "https://deno.land/std@0.193.0/fs/ensure_file.ts"
-import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.2/command/command.ts"
-import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.2/command/types/enum.ts"
+} from "https://deno.land/std@0.197.0/fmt/colors.ts"
+import { emptyDir } from "https://deno.land/std@0.197.0/fs/empty_dir.ts"
+import { ensureFile } from "https://deno.land/std@0.197.0/fs/ensure_file.ts"
+import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
+import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
 import { execa } from "https://deno.land/x/easy_std@v0.4.6/src/process.ts"
 
 import { type PM, pmLock, pms } from "./constant.ts"
@@ -18,7 +18,7 @@ import {
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
-import { exists } from "https://deno.land/std@0.193.0/fs/exists.ts"
+import { exists } from "https://deno.land/std@0.197.0/fs/exists.ts"
 
 function formatOptions(originOptions: Record<string, string | boolean>) {
   const options = Object.keys(originOptions).filter((k) => {
