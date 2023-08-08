@@ -1,6 +1,6 @@
 import { exists } from "https://deno.land/std@0.197.0/fs/exists.ts"
 import { join } from "https://deno.land/std@0.197.0/path/posix.ts"
-import { createUpBases } from "https://deno.land/x/easy_std@v0.4.7/src/path.ts"
+import { createUpBases } from "https://deno.land/x/easy_std@v0.4.8/src/path.ts"
 
 export function existsFile(path: string) {
   return exists(path, {
