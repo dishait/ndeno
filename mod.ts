@@ -1,4 +1,4 @@
-import { basename } from "https://deno.land/std@0.197.0/path/posix.ts"
+import { basename } from "https://deno.land/std@0.201.0/path/posix.ts"
 
 import { lockPM, type PM, pmLock } from "./src/constant.ts"
 import { findUp } from "./src/fs.ts"
