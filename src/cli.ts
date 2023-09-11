@@ -19,6 +19,8 @@ import {
 } from "./pm.ts"
 import { version } from "./version.ts"
 import { exists } from "https://deno.land/std@0.201.0/fs/exists.ts"
+import { logClean } from "./log.ts"
+import { resolve } from "https://deno.land/std@0.201.0/path/resolve.ts"
 
 function formatOptions(originOptions: Record<string, string | boolean>) {
   const options = Object.keys(originOptions).filter((k) => {
@@ -114,17 +116,24 @@ export async function action(currentPM: PM) {
           }
         }
 
-        if (await exists(".nuxt")) {
-          await emptyDir(".nuxt")
-        }
+        const dirs = [
+          resolve("dist"),
+          resolve(".nuxt"),
+          resolve(".output"),
+          resolve(".nitro"),
+          resolve("cache"),
+          resolve("@cache"),
+          resolve("temp"),
+          await findUp(["node_modules"]),
+        ]
 
-        const node_modules_path = await findUp(["node_modules"])
-        if (node_modules_path) {
-          await emptyDir(node_modules_path)
-          console.log(
-            `\n${brightGreen("√ clean")} ${gray(node_modules_path)} \n`,
-          )
-        }
+        await Promise.all(dirs.map(async (dir) => {
+          if (dir && await exists(dir)) {
+            await emptyDir(dir)
+            logClean(dir)
+          }
+        }))
+
         await _install(currentPM)
       },
     )
