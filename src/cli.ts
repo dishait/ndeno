@@ -49,6 +49,8 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
 }
 
 export async function action(currentPM: PM) {
+  const cacheDirs = [".nuxt", ".output", ".nitro", "cache", "@cache", "temp"]
+
   const commander = new Command()
     .name("n")
     .version(version)
@@ -115,25 +117,13 @@ export async function action(currentPM: PM) {
             await Deno.remove(lock)
           }
         }
-
-        const dirs = [
-          resolve("dist"),
-          resolve(".nuxt"),
-          resolve(".output"),
-          resolve(".nitro"),
-          resolve("cache"),
-          resolve("@cache"),
-          resolve("temp"),
-          await findUp(["node_modules"]),
-        ]
-
-        await Promise.all(dirs.map(async (dir) => {
-          if (dir && await exists(dir)) {
-            await emptyDir(dir)
-            logClean(dir)
-          }
-        }))
-
+        await cleanDirs(
+          [
+            "dist",
+            ...cacheDirs,
+            await findUp(["node_modules"]),
+          ],
+        )
         await _install(currentPM)
       },
     )
@@ -175,11 +165,25 @@ export async function action(currentPM: PM) {
     _uninstall(currentPM, deps)
   )
 
+  const clean = new Command().alias("clean").description(
+    `clean cache`,
+  ).action(() => cleanDirs(cacheDirs))
+
   await commander
+    .command("cl", clean)
     .command("in", init)
     .command("i", install)
     .command("ri", reinstall)
     .command("un", uninstall)
     .command("sw", _switch)
     .parse(Deno.args)
+}
+
+async function cleanDirs(dirs: Array<string | null>) {
+  await Promise.all(dirs.map(async (dir) => {
+    if (dir && await exists(dir)) {
+      await emptyDir(dir)
+      logClean(resolve(dir))
+    }
+  }))
 }
