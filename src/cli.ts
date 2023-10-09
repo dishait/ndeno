@@ -21,7 +21,7 @@ import { version } from "./version.ts"
 import { exists } from "https://deno.land/std@0.203.0/fs/exists.ts"
 import { logClean } from "./log.ts"
 import { resolve } from "https://deno.land/std@0.203.0/path/resolve.ts"
-import { paramCase } from "https://deno.land/x/case@2.2.0/mod.ts"
+import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 
 function formatOptions(originOptions: Record<string, string | boolean>) {
   const options = Object.keys(originOptions).filter((k) => {
