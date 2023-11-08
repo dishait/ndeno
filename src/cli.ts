@@ -49,7 +49,16 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
 }
 
 export async function action(currentPM: PM) {
-  const cacheDirs = [".nuxt", ".output", ".nitro", "cache", "@cache", "temp"]
+  const cacheDirs = [
+    ".nuxt",
+    ".output",
+    ".nitro",
+    "cache",
+    "@cache",
+    "temp",
+    ".cache",
+    "docs/.vitepress/cache",
+  ]
 
   const commander = new Command()
     .name("n")
