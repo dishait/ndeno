@@ -1,4 +1,4 @@
-import { basename } from "https://deno.land/std@0.205.0/path/mod.ts"
+import { basename } from "https://deno.land/std@0.206.0/path/mod.ts"
 
 import { lockPM, type PM, pmLock } from "./src/constant.ts"
 import { findUp } from "./src/fs.ts"
