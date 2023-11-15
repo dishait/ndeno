@@ -123,7 +123,7 @@ export async function action(currentPM: PM) {
         if (withLock) {
           const lock = await findUp(Object.values(pmLock))
           if (lock) {
-            await Deno.remove(lock)
+            await Deno.writeFile(lock, new Uint8Array())
           }
         }
         await cleanDirs(
