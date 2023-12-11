@@ -4,81 +4,43 @@ import {
   gray,
   yellow,
 } from "https://deno.land/std@0.208.0/fmt/colors.ts"
-import { emptyDir } from "https://deno.land/std@0.208.0/fs/empty_dir.ts"
 import { ensureFile } from "https://deno.land/std@0.208.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
 import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
 
-import { type PM, pmLock, pms } from "./constant.ts"
-import { existsFile, findUp } from "./fs.ts"
+import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
+import { cacheDirs, locks, type PM, pms } from "./constant.ts"
+import { cleanDirs, existsFile, findUp } from "./fs.ts"
 import {
-  getPackageCommands,
+  getLockFromPm,
   install as _install,
+  loadPackageCommands,
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
-import { exists } from "https://deno.land/std@0.208.0/fs/exists.ts"
-import { logClean } from "./log.ts"
-import { resolve } from "https://deno.land/std@0.208.0/path/resolve.ts"
-import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 
-function formatOptions(originOptions: Record<string, string | boolean>) {
-  const options = Object.keys(originOptions).filter((k) => {
-    if (typeof originOptions[k] === "boolean") {
-      return true
-    }
-    return false
-  })
-  if (originOptions.dir) {
-    options.push(`--dir=${originOptions.dir}`)
-  }
-
-  return options.map((o) => {
-    if (o === "dev") {
-      return "-D"
-    }
-    if (o === "prod") {
-      return "-P"
-    }
-    if (o.startsWith("-")) {
-      return o
-    }
-    return `--${paramCase(o)}`
-  })
-}
-
-export async function action(currentPM: PM) {
-  const cacheDirs = [
-    ".nuxt",
-    ".output",
-    ".nitro",
-    "cache",
-    "@cache",
-    "temp",
-    ".cache",
-    "docs/.vitepress/cache",
-  ]
-
+export async function action(pm: PM) {
   const commander = new Command()
     .name("n")
     .version(version)
     .description(`Command line tool created by deno to manage node projects`)
 
-  const packageCommands = await getPackageCommands()
+  // register package commands
+  const packageCommands = await loadPackageCommands()
   if (packageCommands) {
     Object.keys(packageCommands).forEach((ck, index) => {
       const cv = packageCommands[ck]
       const runCommand = new Command().alias(String(index)).description(
         `${gray(cv)}`,
-      ).action(() => execa([currentPM, "run", ck]))
+      ).action(() => execa([pm, "run", ck]))
       commander.command(ck, runCommand)
     })
   }
 
   const install = new Command()
     .alias("install")
-    .description(`${brightGreen(currentPM)} install deps`)
+    .description(`${brightGreen(pm)} install deps`)
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
@@ -108,11 +70,11 @@ export async function action(currentPM: PM) {
     )
     .arguments("[...deps:string]")
     .action(
-      (options, ...deps) => _install(currentPM, deps, formatOptions(options)),
+      (options, ...deps) => _install(pm, deps, formatOptions(options)),
     )
 
   const reinstall = new Command().alias("reinstall")
-    .description(`${brightGreen(currentPM)} reinstall deps`).option(
+    .description(`${brightGreen(pm)} reinstall deps`).option(
       "-w, --withLock",
       "with lock",
       {
@@ -120,12 +82,15 @@ export async function action(currentPM: PM) {
       },
     ).action(
       async ({ withLock }) => {
+        // empty lock
         if (withLock) {
-          const lock = await findUp(Object.values(pmLock))
-          if (lock) {
-            await Deno.writeFile(lock, new Uint8Array())
+          const lockPath = await findUp(locks)
+          if (lockPath) {
+            await Deno.writeFile(lockPath, new Uint8Array())
           }
         }
+
+        // clean cache
         await cleanDirs(
           [
             "dist",
@@ -133,24 +98,25 @@ export async function action(currentPM: PM) {
             await findUp(["node_modules"]),
           ],
         )
-        await _install(currentPM)
+        // reinstall
+        await _install(pm)
       },
     )
 
   const pm_type = new EnumType<PM>(pms)
   const _switch = new Command().alias("switch").description(
-    `switch ${brightGreen(currentPM)} to ${
-      pms.filter((p) => p !== currentPM).map((p) => yellow(p)).join(" or ")
+    `switch ${brightGreen(pm)} to ${
+      pms.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
     }`,
   ).type(
     "pm_type",
     pm_type,
-  ).arguments("<pm:pm_type>").action(async (_, pm) => {
-    const existedLock = pmLock[currentPM]
+  ).arguments("<pm:pm_type>").action(async (_, newPm) => {
+    const existedLock = getLockFromPm(pm)
     if (await existsFile(existedLock)) {
       await Deno.remove(existedLock)
     }
-    const newLock = pmLock[pm]
+    const newLock = getLockFromPm(newPm)
     await ensureFile(newLock)
   })
 
@@ -160,7 +126,7 @@ export async function action(currentPM: PM) {
       pm_type,
     ).arguments("<pm:pm_type>")
     .action(async (_, pm) => {
-      const newLock = pmLock[pm]
+      const newLock = getLockFromPm(pm)
       const ensureFiles = [ensureFile(newLock)]
       if (!(await existsFile("package.json"))) {
         ensureFiles.push(Deno.writeTextFile("package.json", "{}"))
@@ -169,10 +135,8 @@ export async function action(currentPM: PM) {
     })
 
   const uninstall = new Command().alias("uninstall").alias("rm").description(
-    `${brightGreen(currentPM)} uninstall deps`,
-  ).arguments("<...deps:string>").action((_, ...deps) =>
-    _uninstall(currentPM, deps)
-  )
+    `${brightGreen(pm)} uninstall deps`,
+  ).arguments("<...deps:string>").action((_, ...deps) => _uninstall(pm, deps))
 
   const clean = new Command().alias("clean").description(
     `clean cache`,
@@ -188,11 +152,27 @@ export async function action(currentPM: PM) {
     .parse(Deno.args)
 }
 
-async function cleanDirs(dirs: Array<string | null>) {
-  await Promise.all(dirs.map(async (dir) => {
-    if (dir && await exists(dir)) {
-      await emptyDir(dir)
-      logClean(resolve(dir))
+function formatOptions(originOptions: Record<string, string | boolean>) {
+  const options = Object.keys(originOptions).filter((k) => {
+    if (typeof originOptions[k] === "boolean") {
+      return true
     }
-  }))
+    return false
+  })
+  if (originOptions.dir) {
+    options.push(`--dir=${originOptions.dir}`)
+  }
+
+  return options.map((o) => {
+    if (o === "dev") {
+      return "-D"
+    }
+    if (o === "prod") {
+      return "-P"
+    }
+    if (o.startsWith("-")) {
+      return o
+    }
+    return `--${paramCase(o)}`
+  })
 }

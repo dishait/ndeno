@@ -1,7 +1,9 @@
-import type { PM } from "./constant.ts"
+import { basename } from "https://deno.land/std@0.208.0/path/basename.ts"
 import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
+import { locks, type PM } from "./constant.ts"
+import { findUp } from "./fs.ts"
 
-export async function getPackageCommands() {
+export async function loadPackageCommands() {
   try {
     const packageText = await Deno.readTextFile("package.json")
     const scripts = JSON.parse(packageText)["scripts"] || {}
@@ -34,4 +36,31 @@ export function install(
 export function unInstall(pm: PM, deps: string[]) {
   const isNpm = pm === "npm"
   return execa([pm, isNpm ? "uninstall" : "remove", ...deps])
+}
+
+export function getPmFromPath(path: string) {
+  switch (basename(path)) {
+    case "pnpm-lock.yaml":
+      return "pnpm"
+    case "yarn.lock":
+      return "yarn"
+    default:
+      return "npm"
+  }
+}
+
+export function getLockFromPm(pm: PM) {
+  switch (pm) {
+    case "pnpm":
+      return "pnpm-lock.yaml"
+    case "yarn":
+      return "yarn.lock"
+    default:
+      return "package-lock.json"
+  }
+}
+
+export async function detectPackageManager() {
+  const lockPath = await findUp(locks)
+  return getPmFromPath(lockPath ?? "")
 }

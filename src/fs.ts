@@ -1,5 +1,8 @@
+import { logClean } from "./log.ts"
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts"
 import { exists } from "https://deno.land/std@0.208.0/fs/exists.ts"
+import { resolve } from "https://deno.land/std@0.208.0/path/resolve.ts"
+import { emptyDir } from "https://deno.land/std@0.208.0/fs/empty_dir.ts"
 import { createUpBases } from "https://deno.land/x/easy_std@v0.6.0/src/path.ts"
 
 export function existsFile(path: string) {
@@ -21,4 +24,13 @@ export async function findUp(files: string[]) {
     }
   }
   return null
+}
+
+export async function cleanDirs(dirs: Array<string | null>) {
+  await Promise.all(dirs.map(async (dir) => {
+    if (dir && await exists(dir)) {
+      await emptyDir(dir)
+      logClean(resolve(dir))
+    }
+  }))
 }

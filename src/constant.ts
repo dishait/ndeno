@@ -1,15 +1,15 @@
-export enum pmLock {
-  yarn = "yarn.lock",
-  pnpm = "pnpm-lock.yaml",
-  npm = "package-lock.json",
-}
-
-export enum lockPM {
-  "yarn.lock" = "yarn",
-  "pnpm-lock.yaml" = "pnpm",
-  "package-lock.json" = "npm",
-}
-
+export type PM = "npm" | "pnpm" | "yarn"
 export const pms = ["npm", "pnpm", "yarn"] as const
 
-export type PM = keyof typeof pmLock
+export const locks = ["pnpm-lock.yaml", "yarn.lock", "package-lock.json"]
+
+export const cacheDirs = [
+  ".nuxt",
+  ".output",
+  ".nitro",
+  "cache",
+  "@cache",
+  "temp",
+  ".cache",
+  "docs/.vitepress/cache",
+]
