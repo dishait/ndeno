@@ -1,5 +1,5 @@
 import type { PM } from "./constant.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.5.3/src/process.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
 
 export async function getPackageCommands() {
   try {
