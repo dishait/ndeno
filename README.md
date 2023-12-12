@@ -12,7 +12,9 @@ English | [简体中文](./README_CN.md)
 
 ## Motivation
 
-I wish there was a command tool that could smooth out the differences between `npm`, `yarn`, `pnpm`, and other `node` project package managers, and `deno` when used.
+I wish there was a command tool that could smooth out the differences between
+`npm`, `yarn`, `pnpm`, and other `node` project package managers, and `deno`
+when used.
 
 <br />
 

@@ -162,9 +162,7 @@ export async function denoAction() {
       const cv = packageCommands[ck]
       const runCommand = new Command().alias(String(index)).description(
         `${gray(cv)}`,
-      ).action(() =>
-        execa(["deno", "task", ck]).catch(() => console.log("hello"))
-      )
+      ).action(() => execa(["deno", "task", ck]))
       commander.command(ck, runCommand)
     })
   }
