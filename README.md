@@ -1,7 +1,6 @@
 # ndeno
 
 Command line tool created by [deno](https://deno.land/) to manage js rumtime projects
-(Unified)
 
 <br />
 

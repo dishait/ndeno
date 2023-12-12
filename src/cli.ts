@@ -21,10 +21,7 @@ import {
 import { version } from "./version.ts"
 
 export async function action(pm: PM) {
-  const commander = new Command()
-    .name("n")
-    .version(version)
-    .description(`Command line tool created by deno to manage node projects`)
+  const commander = createMainCommander()
 
   // register package commands
   const packageCommands = await loadPackageCommands()
@@ -153,10 +150,7 @@ export async function action(pm: PM) {
 }
 
 export async function denoAction() {
-  const commander = new Command()
-    .name("n")
-    .version(version)
-    .description(`Command line tool created by deno to manage node projects`)
+  const commander = createMainCommander()
 
   const path = await findUpDenoConfigFile()
 
@@ -176,6 +170,15 @@ export async function denoAction() {
   }
 
   await commander.parse(Deno.args)
+}
+
+function createMainCommander() {
+  return new Command()
+    .name("n")
+    .version(version)
+    .description(
+      `Command line tool created by deno to manage js rumtime projects`,
+    )
 }
 
 function formatOptions(originOptions: Record<string, string | boolean>) {
