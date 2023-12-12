@@ -1,6 +1,6 @@
 # ndeno
 
-[deno](https://deno.land/) 实现的 js runtime 项目包管理命令工具
+js runtime 项目管理命令工具
 
 <br />
 

@@ -177,7 +177,7 @@ function createMainCommander() {
     .name("n")
     .version(version)
     .description(
-      `Command line tool created by deno to manage js rumtime projects`,
+      `js runtime project management tool`,
     )
 }
 
