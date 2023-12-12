@@ -1,4 +1,5 @@
 import { logClean } from "./log.ts"
+import { denoConfigFiles } from "./constant.ts"
 import { join } from "https://deno.land/std@0.208.0/path/mod.ts"
 import { exists } from "https://deno.land/std@0.208.0/fs/exists.ts"
 import { resolve } from "https://deno.land/std@0.208.0/path/resolve.ts"
@@ -33,4 +34,14 @@ export async function cleanDirs(dirs: Array<string | null>) {
       logClean(resolve(dir))
     }
   }))
+}
+
+export async function findUpDenoConfigFile() {
+  const path = await findUp(denoConfigFiles)
+  return path
+}
+
+export async function isDenoProject() {
+  const path = await findUpDenoConfigFile()
+  return Boolean(path)
 }

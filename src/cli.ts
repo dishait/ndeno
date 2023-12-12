@@ -11,7 +11,7 @@ import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
 
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"
-import { cleanDirs, existsFile, findUp } from "./fs.ts"
+import { cleanDirs, existsFile, findUp, findUpDenoConfigFile } from "./fs.ts"
 import {
   getLockFromPm,
   install as _install,
@@ -150,6 +150,32 @@ export async function action(pm: PM) {
     .command("un", uninstall)
     .command("sw", _switch)
     .parse(Deno.args)
+}
+
+export async function denoAction() {
+  const commander = new Command()
+    .name("n")
+    .version(version)
+    .description(`Command line tool created by deno to manage node projects`)
+
+  const path = await findUpDenoConfigFile()
+
+  // register task commands
+  const packageCommands = await loadPackageCommands(path!, "tasks")
+
+  if (packageCommands) {
+    Object.keys(packageCommands).forEach((ck, index) => {
+      const cv = packageCommands[ck]
+      const runCommand = new Command().alias(String(index)).description(
+        `${gray(cv)}`,
+      ).action(() =>
+        execa(["deno", "task", ck]).catch(() => console.log("hello"))
+      )
+      commander.command(ck, runCommand)
+    })
+  }
+
+  await commander.parse(Deno.args)
 }
 
 function formatOptions(originOptions: Record<string, string | boolean>) {

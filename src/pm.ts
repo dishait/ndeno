@@ -3,10 +3,13 @@ import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
 import { locks, type PM } from "./constant.ts"
 import { findUp } from "./fs.ts"
 
-export async function loadPackageCommands() {
+export async function loadPackageCommands(
+  file = "package.json",
+  key = "scripts",
+) {
   try {
-    const packageText = await Deno.readTextFile("package.json")
-    const scripts = JSON.parse(packageText)["scripts"] || {}
+    const packageText = await Deno.readTextFile(file)
+    const scripts = JSON.parse(packageText)[key] || {}
     return scripts as Record<string, string>
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {

@@ -1,6 +1,6 @@
 # ndeno
 
-[deno](https://deno.land/) 实现的 node 项目包管理命令工具
+[deno](https://deno.land/) 实现的 js runtime 项目包管理命令工具
 
 <br />
 
@@ -13,7 +13,7 @@
 ## 动机
 
 希望有一个命令工具可以抹平 `npm`，`yarn`，`pnpm` 等 `node`
-项目包管理器在使用时的差异。
+项目包管理器以及 `deno` 在使用时的差异。
 
 <br />
 

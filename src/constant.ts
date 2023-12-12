@@ -13,3 +13,5 @@ export const cacheDirs = [
   ".cache",
   "docs/.vitepress/cache",
 ]
+
+export const denoConfigFiles = ["deno.json", "deno.jsonc"]

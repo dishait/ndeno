@@ -1,6 +1,6 @@
 # ndeno
 
-Command line tool created by [deno](https://deno.land/) to manage node projects
+Command line tool created by [deno](https://deno.land/) to manage js rumtime projects
 (Unified)
 
 <br />
@@ -13,8 +13,7 @@ English | [简体中文](./README_CN.md)
 
 ## Motivation
 
-I hope there is a tool to help me block out npm, yarn and pnpm to manage node
-projects
+I wish there was a command tool that could smooth out the differences between `npm`, `yarn`, `pnpm`, and other `node` project package managers, and `deno` when used.
 
 <br />
 
