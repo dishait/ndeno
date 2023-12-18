@@ -8,10 +8,7 @@ import {
 import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-import {
-  denoFmt,
-  execa,
-} from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"
@@ -132,7 +129,7 @@ export async function action(pm: PM) {
       await Promise.all([ensureFile(newLock), resetPackageJson()])
 
       async function resetPackageJson() {
-        if (await existsFile("package.json")) {
+        if (!await existsFile("package.json")) {
           return resetFile()
         }
         const packageText = await Deno.readTextFile("package.json")
