@@ -1,10 +1,13 @@
 import { logClean } from "./log.ts"
+import type { PM } from "./constant.ts"
+import { loadWorkspaces } from "./pm.ts"
 import { denoConfigFiles } from "./constant.ts"
 import { join } from "https://deno.land/std@0.209.0/path/mod.ts"
 import { exists } from "https://deno.land/std@0.209.0/fs/exists.ts"
 import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
 import { emptyDir } from "https://deno.land/std@0.209.0/fs/empty_dir.ts"
 import { createUpBases } from "https://deno.land/x/easy_std@v0.6.1/src/path.ts"
+import { isAbsolute } from "https://deno.land/std@0.209.0/path/is_absolute.ts"
 
 export function existsFile(path: string) {
   return exists(path, {
@@ -27,13 +30,27 @@ export async function findUp(files: string[]) {
   return null
 }
 
-export async function cleanDirs(dirs: Array<string | null>) {
-  await Promise.all(dirs.map(async (dir) => {
-    if (dir && await exists(dir)) {
+export async function cleanDirs(dirs: Array<string | null>, root = Deno.cwd()) {
+  const newDirs = dirs.filter(Boolean).map((dir) => {
+    if (isAbsolute(dir!)) {
+      return dir
+    }
+    return resolve(root, dir!)
+  }) as string[]
+  await Promise.all(newDirs.map(async (dir) => {
+    if (await exists(dir)) {
       await emptyDir(dir)
-      logClean(resolve(dir))
+      logClean(dir)
     }
   }))
+}
+
+export async function cleanWorkspaces(pm: PM, dirs: string[]) {
+  const workspaces = await loadWorkspaces(pm)
+
+  await Promise.all(
+    workspaces.map((workspace) => cleanDirs(dirs, workspace)),
+  )
 }
 
 export async function findUpDenoConfigFile() {

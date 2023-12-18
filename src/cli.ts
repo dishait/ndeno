@@ -12,11 +12,18 @@ import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"
-import { cleanDirs, existsFile, findUp, findUpDenoConfigFile } from "./fs.ts"
+import {
+  cleanDirs,
+  cleanWorkspaces,
+  existsFile,
+  findUp,
+  findUpDenoConfigFile,
+} from "./fs.ts"
 import {
   getLockFromPm,
   install as _install,
   loadPackageCommands,
+  loadWorkspaces,
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
@@ -87,13 +94,9 @@ export async function action(pm: PM) {
           }
         }
 
-        // clean cache
-        await cleanDirs(
-          [
-            ...cacheDirs,
-            await findUp(["node_modules"]),
-          ],
-        )
+        // clean cache and node_modules
+        await cleanWorkspaces(pm, [...cacheDirs, "node_modules"])
+
         // reinstall
         await _install(pm)
       },
@@ -156,7 +159,7 @@ export async function action(pm: PM) {
 
   const clean = new Command().alias("clean").description(
     `clean cache`,
-  ).action(() => cleanDirs(cacheDirs))
+  ).action(() => cleanWorkspaces(pm, cacheDirs))
 
   await commander
     .command("cl", clean)
