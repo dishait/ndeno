@@ -26,16 +26,14 @@ export async function action(pm: PM) {
   const commander = createMainCommander()
 
   // register package commands
-  const packageCommands = await loadPackageCommands()
-  if (packageCommands) {
-    Object.keys(packageCommands).forEach((ck, index) => {
-      const cv = packageCommands[ck]
-      const runCommand = new Command().alias(String(index)).description(
-        `${gray(cv)}`,
-      ).action(() => execa([pm, "run", ck]))
-      commander.command(ck, runCommand)
-    })
-  }
+  registerPackageCommands({
+    commander,
+    key: "scripts",
+    path: "package.json",
+    action(key) {
+      return execa([pm, "run", key])
+    },
+  })
 
   const install = new Command()
     .alias("install")
@@ -174,17 +172,14 @@ export async function denoAction() {
   const path = await findUpDenoConfigFile()
 
   // register task commands
-  const packageCommands = await loadPackageCommands(path!, "tasks")
-
-  if (packageCommands) {
-    Object.keys(packageCommands).forEach((ck, index) => {
-      const cv = packageCommands[ck]
-      const runCommand = new Command().alias(String(index)).description(
-        `${gray(cv)}`,
-      ).action(() => execa(["deno", "task", ck]))
-      commander.command(ck, runCommand)
-    })
-  }
+  registerPackageCommands({
+    commander,
+    path: path!,
+    key: "tasks",
+    action(key) {
+      return execa(["deno", "task", key])
+    },
+  })
 
   await commander.parse(Deno.args)
 }
@@ -221,4 +216,30 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
     }
     return `--${paramCase(o)}`
   })
+}
+
+interface RegisterPackageCommandsOptions {
+  path: string
+  key: string
+  commander: Command
+
+  action(key: string): unknown
+}
+
+async function registerPackageCommands(
+  options: RegisterPackageCommandsOptions,
+) {
+  const { path, key, commander, action } = options
+  // register task commands
+  const packageCommands = await loadPackageCommands(path, key)
+
+  if (packageCommands) {
+    Object.keys(packageCommands).forEach((ck, index) => {
+      const cv = packageCommands[ck]
+      const runCommand = new Command().alias(String(index)).description(
+        `${gray(cv)}`,
+      ).action(() => action(ck))
+      commander.command(ck, runCommand)
+    })
+  }
 }
