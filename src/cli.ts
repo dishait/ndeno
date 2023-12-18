@@ -124,17 +124,20 @@ export async function action(pm: PM) {
     ).arguments("<pm:pm_type>")
     .action(async (_, pm) => {
       const newLock = getLockFromPm(pm)
-      await Promise.all([ensureFile(newLock), resetPackageJson()])
+      await Promise.all([ensureFile(newLock), initPackageJson()])
 
-      async function resetPackageJson() {
+      async function initPackageJson() {
         if (!await existsFile("package.json")) {
-          return resetFile()
+          return initFile()
         }
         const packageText = await Deno.readTextFile("package.json")
-        // if package.json empty
-        if (packageText.length === 0) {
-          return resetFile()
+
+        const packageJsonEmpty = packageText.length === 0
+
+        if (packageJsonEmpty) {
+          return initFile()
         }
+
         try {
           JSON.parse(packageText)
         } catch (error) {
@@ -142,7 +145,7 @@ export async function action(pm: PM) {
           console.log(error)
         }
 
-        async function resetFile() {
+        async function initFile() {
           await Deno.writeTextFile("package.json", "{}")
         }
       }
@@ -230,9 +233,7 @@ async function registerPackageCommands(
   options: RegisterPackageCommandsOptions,
 ) {
   const { path, key, commander, action } = options
-  // register task commands
   const packageCommands = await loadPackageCommands(path, key)
-
   if (packageCommands) {
     Object.keys(packageCommands).forEach((ck, index) => {
       const cv = packageCommands[ck]
