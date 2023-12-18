@@ -26,7 +26,7 @@ export async function action(pm: PM) {
   const commander = createMainCommander()
 
   // register package commands
-  registerPackageCommands({
+  await registerPackageCommands({
     commander,
     key: "scripts",
     path: "package.json",
@@ -175,7 +175,7 @@ export async function denoAction() {
   const path = await findUpDenoConfigFile()
 
   // register task commands
-  registerPackageCommands({
+  await registerPackageCommands({
     commander,
     path: path!,
     key: "tasks",
