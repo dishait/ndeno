@@ -90,7 +90,6 @@ export async function action(pm: PM) {
         // clean cache
         await cleanDirs(
           [
-            "dist",
             ...cacheDirs,
             await findUp(["node_modules"]),
           ],

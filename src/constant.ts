@@ -4,6 +4,7 @@ export const pms = ["npm", "pnpm", "yarn"] as const
 export const locks = ["pnpm-lock.yaml", "yarn.lock", "package-lock.json"]
 
 export const cacheDirs = [
+  "dist",
   ".nuxt",
   ".output",
   ".nitro",
