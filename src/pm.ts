@@ -1,5 +1,5 @@
-import { basename } from "https://deno.land/std@0.208.0/path/basename.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
+import { basename } from "https://deno.land/std@0.209.0/path/basename.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 import { locks, type PM } from "./constant.ts"
 import { findUp } from "./fs.ts"
 

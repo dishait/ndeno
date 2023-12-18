@@ -3,11 +3,11 @@ import {
   brightYellow,
   gray,
   yellow,
-} from "https://deno.land/std@0.208.0/fmt/colors.ts"
-import { ensureFile } from "https://deno.land/std@0.208.0/fs/ensure_file.ts"
+} from "https://deno.land/std@0.209.0/fmt/colors.ts"
+import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.6.0/src/process.ts"
+import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"

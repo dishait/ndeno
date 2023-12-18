@@ -1,10 +1,10 @@
 import { logClean } from "./log.ts"
 import { denoConfigFiles } from "./constant.ts"
-import { join } from "https://deno.land/std@0.208.0/path/mod.ts"
-import { exists } from "https://deno.land/std@0.208.0/fs/exists.ts"
-import { resolve } from "https://deno.land/std@0.208.0/path/resolve.ts"
-import { emptyDir } from "https://deno.land/std@0.208.0/fs/empty_dir.ts"
-import { createUpBases } from "https://deno.land/x/easy_std@v0.6.0/src/path.ts"
+import { join } from "https://deno.land/std@0.209.0/path/mod.ts"
+import { exists } from "https://deno.land/std@0.209.0/fs/exists.ts"
+import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
+import { emptyDir } from "https://deno.land/std@0.209.0/fs/empty_dir.ts"
+import { createUpBases } from "https://deno.land/x/easy_std@v0.6.1/src/path.ts"
 
 export function existsFile(path: string) {
   return exists(path, {
