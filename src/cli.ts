@@ -2,12 +2,16 @@ import {
   brightGreen,
   brightYellow,
   gray,
+  red,
   yellow,
 } from "https://deno.land/std@0.209.0/fmt/colors.ts"
 import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
+import {
+  denoFmt,
+  execa,
+} from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"
@@ -19,6 +23,7 @@ import {
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
+import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
 
 export async function action(pm: PM) {
   const commander = createMainCommander()
@@ -124,11 +129,28 @@ export async function action(pm: PM) {
     ).arguments("<pm:pm_type>")
     .action(async (_, pm) => {
       const newLock = getLockFromPm(pm)
-      const ensureFiles = [ensureFile(newLock)]
-      if (!(await existsFile("package.json"))) {
-        ensureFiles.push(Deno.writeTextFile("package.json", "{}"))
+      await Promise.all([ensureFile(newLock), resetPackageJson()])
+
+      async function resetPackageJson() {
+        if (await existsFile("package.json")) {
+          return resetFile()
+        }
+        const packageText = await Deno.readTextFile("package.json")
+        // if package.json empty
+        if (packageText.length === 0) {
+          return resetFile()
+        }
+        try {
+          JSON.parse(packageText)
+        } catch (error) {
+          console.log(`parse error -> ${red(resolve("package.json"))}`)
+          console.log(error)
+        }
+
+        async function resetFile() {
+          await Deno.writeTextFile("package.json", "{}")
+        }
       }
-      await Promise.all(ensureFiles)
     })
 
   const uninstall = new Command().alias("uninstall").alias("rm").description(
