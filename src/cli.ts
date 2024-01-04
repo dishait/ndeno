@@ -13,7 +13,6 @@ import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
 import { cacheDirs, locks, type PM, pms } from "./constant.ts"
 import {
-  cleanDirs,
   cleanWorkspaces,
   existsFile,
   findUp,
@@ -23,7 +22,6 @@ import {
   getLockFromPm,
   install as _install,
   loadPackageCommands,
-  loadWorkspaces,
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"

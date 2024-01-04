@@ -1,7 +1,7 @@
 import { basename } from "https://deno.land/std@0.209.0/path/basename.ts"
 import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
 import { locks, type PM } from "./constant.ts"
-import { findUp } from "./fs.ts"
+import { existsFile, findUp } from "./fs.ts"
 import { parse } from "https://deno.land/std@0.209.0/yaml/parse.ts"
 import { isGlob } from "https://deno.land/std@0.209.0/path/is_glob.ts"
 import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
@@ -70,6 +70,26 @@ export function getLockFromPm(pm: PM) {
 
 export async function detectPackageManager() {
   const lockPath = await findUp(locks)
+
+  if (!lockPath) {
+    const packageJson = await findUp(["package.json"])
+    if (packageJson && await existsFile(packageJson)) {
+      const packageText = await Deno.readTextFile(packageJson)
+      try {
+        const { packageManager } = JSON.parse(packageText) as {
+          packageManager?: string
+        }
+        if (!packageManager) {
+          return "npm"
+        }
+        return packageManager.split("@")[0] as "npm" | "pnpm" | "yarn"
+      } catch (error) {
+        console.log(`detectPackageManager(package.json): ${error}`)
+        return "npm"
+      }
+    }
+  }
+
   return getPmFromPath(lockPath ?? "")
 }
 
