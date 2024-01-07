@@ -70,6 +70,7 @@ export async function action(pm: PM) {
         brightYellow("(only pnpm)")
       }`,
     )
+    .option("-f, --force", "force install deps")
     .arguments("[...deps:string]")
     .action(
       (options, ...deps) => _install(pm, deps, formatOptions(options)),
