@@ -1,5 +1,5 @@
-import { slash } from "https://deno.land/x/easy_std@v0.6.1/src/path.ts"
-import { brightGreen, gray } from "https://deno.land/std@0.209.0/fmt/colors.ts"
+import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
+import { brightGreen, gray } from "https://deno.land/std@0.212.0/fmt/colors.ts"
 
 export function logClean(dir: string) {
   console.log(

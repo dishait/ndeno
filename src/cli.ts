@@ -8,10 +8,11 @@ import {
 import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
+import { execa } from "./process.ts"
 
+import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
-import { cacheDirs, locks, type PM, pms } from "./constant.ts"
+import { cacheDirs, description, locks, type PM, pms } from "./constant.ts"
 import {
   cleanWorkspaces,
   existsFile,
@@ -25,7 +26,6 @@ import {
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
-import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
 
 export async function action(pm: PM) {
   const commander = createMainCommander()
@@ -192,9 +192,7 @@ function createMainCommander() {
   return new Command()
     .name("n")
     .version(version)
-    .description(
-      `js runtime project management tool`,
-    )
+    .description(description)
 }
 
 function formatOptions(originOptions: Record<string, string | boolean>) {

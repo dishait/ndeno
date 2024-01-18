@@ -16,3 +16,6 @@ export const cacheDirs = [
 ]
 
 export const denoConfigFiles = ["deno.json", "deno.jsonc"]
+
+export const description =
+  "js runtime project management tool | js runtime 项目管理命令工具"

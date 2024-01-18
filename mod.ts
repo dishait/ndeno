@@ -2,7 +2,7 @@ import { install } from "./src/pm.ts"
 import { isDenoProject } from "./src/fs.ts"
 import { detectPackageManager } from "./src/pm.ts"
 
-if (import.meta.main) {
+async function runMain() {
   const { args } = Deno
 
   if (await isDenoProject()) {
@@ -21,4 +21,8 @@ if (import.meta.main) {
   const { action } = await import("./src/cli.ts")
 
   await action(pm)
+}
+
+if (import.meta.main) {
+  runMain()
 }

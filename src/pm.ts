@@ -1,12 +1,12 @@
-import { basename } from "https://deno.land/std@0.209.0/path/basename.ts"
-import { execa } from "https://deno.land/x/easy_std@v0.6.1/src/process.ts"
+import { basename } from "https://deno.land/std@0.212.0/path/basename.ts"
+import { execa } from "./process.ts"
 import { locks, type PM } from "./constant.ts"
 import { existsFile, findUp } from "./fs.ts"
-import { parse } from "https://deno.land/std@0.209.0/yaml/parse.ts"
-import { isGlob } from "https://deno.land/std@0.209.0/path/is_glob.ts"
-import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
-import { isAbsolute } from "https://deno.land/std@0.209.0/path/is_absolute.ts"
-import { expandGlob } from "https://deno.land/std@0.209.0/fs/expand_glob.ts"
+import { parse } from "https://deno.land/std@0.212.0/yaml/parse.ts"
+import { isGlob } from "https://deno.land/std@0.212.0/path/is_glob.ts"
+import { resolve } from "https://deno.land/std@0.212.0/path/resolve.ts"
+import { isAbsolute } from "https://deno.land/std@0.212.0/path/is_absolute.ts"
+import { expandGlob } from "https://deno.land/std@0.212.0/fs/expand_glob.ts"
 
 export async function loadPackageCommands(
   file = "package.json",
