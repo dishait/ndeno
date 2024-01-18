@@ -80,7 +80,7 @@ async function sanitiseDeps() {
       if (packageJson["devDependencies"]) {
         packageJson["devDependencies"] = Object.assign(
           packageJson["devDependencies"],
-          dependencies,
+          dependencies
         )
       }
       delete packageJson[key]
@@ -90,7 +90,7 @@ async function sanitiseDeps() {
 
   await Deno.writeTextFile(
     packageJsonPath,
-    JSON.stringify(packageJson, null, 2),
+    JSON.stringify(packageJson, null, 2)
   )
 
   await execa(["npm", "install"], {
