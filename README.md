@@ -34,7 +34,8 @@ npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstab
 
 ### nodejs
 
-you can use `npm install ndeno -g` to install `ndeno` globally. (In a pure nodejs environment)
+you can use `npm install ndeno -g` to install `ndeno` globally. (In a pure
+nodejs environment)
 
 ### daily
 

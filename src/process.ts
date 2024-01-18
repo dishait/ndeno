@@ -7,6 +7,6 @@ export function execa(cmd: string[]) {
     return denoExeca(cmd)
   }
   return nodeExeca(cmd.shift() as string, cmd, {
-    stdio: 'inherit'
+    stdio: "inherit",
   })
 }

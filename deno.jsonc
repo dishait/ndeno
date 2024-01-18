@@ -1,12 +1,13 @@
 {
   "tasks": {
     "start": "deno run -A mod.ts",
-    "release": "deno run --allow-read --allow-write --allow-env --allow-run https://deno.land/x/easy_std@v0.6.1/scripts/release.ts",
+    "release": "deno run --allow-read --allow-write --allow-env --allow-run https://deno.land/x/easy_std@v0.7.0/scripts/release.ts",
     "install": "deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n mod.ts",
-    "hello": "deno eval 'console.log(`hello`)'"
+    "release-npm": "deno run -A release-npm.ts"
   },
   "fmt": {
     "semiColons": false
   },
-  "lock": true
+  "lock": true,
+  "exclude": ["npm"]
 }
