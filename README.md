@@ -32,6 +32,10 @@ Of course, if you don't have Deno installed 👇
 npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
+### nodejs
+
+you can use `npm install ndeno -g` to install `ndeno` globally. (In a pure nodejs environment)
+
 ### daily
 
 Automatically determine the package manager of the project, without worrying

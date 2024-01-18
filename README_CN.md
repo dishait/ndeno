@@ -90,6 +90,10 @@ npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstab
 deno uninstall n
 ```
 
+### nodejs
+
+你可以使用 `npm install ndeno -g` 去全局安装 `ndeno` (在纯 nodejs 环境中)
+
 ## License
 
 Made with [markthree](https://github.com/markthree)
