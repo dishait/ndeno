@@ -23,13 +23,13 @@ when used.
 ### install
 
 ```shell
-deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+deno install --allow-read --allow-env --allow-run --allow-write -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 Of course, if you don't have Deno installed 👇
 
 ```shell
-npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+npx deno-npx install --allow-read --allow-env --allow-run --allow-write -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 ### nodejs

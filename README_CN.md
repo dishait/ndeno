@@ -75,13 +75,13 @@ n -h # 查看当前使用信息
 然后再执行 👇
 
 ```shell
-deno install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+deno install --allow-read --allow-env --allow-run --allow-write -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 当然如果你不想手动安装 [deno](https://deno.com/runtime) 👇
 
 ```shell
-npx deno-npx install --allow-read --allow-env --allow-run --allow-write --unstable -rfn n https://deno.land/x/ndeno/mod.ts
+npx deno-npx install --allow-read --allow-env --allow-run --allow-write -rfn n https://deno.land/x/ndeno/mod.ts
 ```
 
 ### 卸载
