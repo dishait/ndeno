@@ -30,7 +30,8 @@ import {
 import { version } from "./version.ts"
 import { join } from "https://deno.land/std@0.212.0/path/join.ts"
 import { dirname } from "https://deno.land/std@0.209.0/path/dirname.ts"
-import { basename } from "https://deno.land/std@0.209.0/path/basename.ts"
+import { relative } from "https://deno.land/std@0.209.0/path/relative.ts"
+import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
 
 export async function action(pm: PM) {
   const commander = createMainCommander()
@@ -240,23 +241,24 @@ async function registerPackageCommands(
 ) {
   const { paths, key, commander, action } = options
 
+  const root = paths[0]
   const commandSet = new Set<string>()
   for (let i = 0; i < paths.length; i++) {
     const path = paths[i]
-    const root = i === 0
-    const dir = dirname(path)
+    const isRoot = i === 0
+    const cwd = dirname(path)
     const packageCommands = await loadPackageCommands(path, key)
     if (packageCommands) {
-      const workspace = root ? "" : basename(dir)
+      const workspace = isRoot ? "" : slash(relative(dirname(root), cwd))
       Object.keys(packageCommands).forEach((ck, index) => {
         const cv = packageCommands[ck]
-        const description = root
+        const description = isRoot
           ? `${gray(cv)}`
-          : `${gray(cv)} ${dim(`→ ${workspace}`)}`
+          : `${gray(cv)} ${dim(yellow(`→ ${workspace}`))}`
         const runCommand = new Command().alias(String(index)).description(
           description,
-        ).action(() => action(ck, dir))
-        const mck = root ? ck : `${workspace}:${ck}`
+        ).action(() => action(ck, cwd))
+        const mck = isRoot ? ck : `${workspace.replaceAll("/", ":")}:${ck}`
         if (commandSet.has(mck)) {
           return
         }
