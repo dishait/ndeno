@@ -1,6 +1,7 @@
 import {
   brightGreen,
   brightYellow,
+  dim,
   gray,
   red,
   yellow,
@@ -23,20 +24,26 @@ import {
   getLockFromPm,
   install as _install,
   loadPackageCommands,
+  loadWorkspaces,
   unInstall as _uninstall,
 } from "./pm.ts"
 import { version } from "./version.ts"
+import { join } from "https://deno.land/std@0.212.0/path/join.ts"
+import { dirname } from "https://deno.land/std@0.209.0/path/dirname.ts"
+import { basename } from "https://deno.land/std@0.209.0/path/basename.ts"
 
 export async function action(pm: PM) {
   const commander = createMainCommander()
 
+  const workspaces = await loadWorkspaces(pm)
+  const paths = workspaces.map((w) => join(w, "package.json"))
   // register package commands
   await registerPackageCommands({
+    paths,
     commander,
     key: "scripts",
-    path: "package.json",
-    action(key) {
-      return execa([pm, "run", key])
+    action(key, cwd) {
+      return execa([pm, "run", key], cwd)
     },
   })
 
@@ -178,10 +185,10 @@ export async function denoAction() {
   // register task commands
   await registerPackageCommands({
     commander,
-    path: path!,
+    paths: [path!],
     key: "tasks",
-    action(key) {
-      return execa(["deno", "task", key])
+    action(key, cwd) {
+      return execa(["deno", "task", key], cwd)
     },
   })
 
@@ -221,25 +228,41 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
 }
 
 interface RegisterPackageCommandsOptions {
-  path: string
+  paths: string[]
   key: string
   commander: Command
 
-  action(key: string): unknown
+  action(key: string, cwd: string): unknown
 }
 
 async function registerPackageCommands(
   options: RegisterPackageCommandsOptions,
 ) {
-  const { path, key, commander, action } = options
-  const packageCommands = await loadPackageCommands(path, key)
-  if (packageCommands) {
-    Object.keys(packageCommands).forEach((ck, index) => {
-      const cv = packageCommands[ck]
-      const runCommand = new Command().alias(String(index)).description(
-        `${gray(cv)}`,
-      ).action(() => action(ck))
-      commander.command(ck, runCommand)
-    })
+  const { paths, key, commander, action } = options
+
+  const commandSet = new Set<string>()
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i]
+    const root = i === 0
+    const dir = dirname(path)
+    const packageCommands = await loadPackageCommands(path, key)
+    if (packageCommands) {
+      const workspace = root ? "" : basename(dir)
+      Object.keys(packageCommands).forEach((ck, index) => {
+        const cv = packageCommands[ck]
+        const description = root
+          ? `${gray(cv)}`
+          : `${gray(cv)} ${dim(`→ ${workspace}`)}`
+        const runCommand = new Command().alias(String(index)).description(
+          description,
+        ).action(() => action(ck, dir))
+        const mck = root ? ck : `${workspace}:${ck}`
+        if (commandSet.has(mck)) {
+          return
+        }
+        commander.command(mck, runCommand)
+        commandSet.add(mck)
+      })
+    }
   }
 }
