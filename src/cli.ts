@@ -32,19 +32,41 @@ import { join } from "https://deno.land/std@0.212.0/path/join.ts"
 import { dirname } from "https://deno.land/std@0.209.0/path/dirname.ts"
 import { relative } from "https://deno.land/std@0.209.0/path/relative.ts"
 import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
-import { useCount } from "https://deno.land/x/easy_std@v0.7.0/src/fn.ts"
+import { noop, useCount } from "https://deno.land/x/easy_std@v0.7.0/src/fn.ts"
 
 export async function action(pm: PM) {
   const commander = createMainCommander()
 
   const workspaces = await loadWorkspaces(pm)
   const paths = workspaces.map((w) => join(w, "package.json"))
+  // TODO 允许扩展 options
+
+  interface PackageCommandOptions {
+    install?: boolean
+    reinstall?: boolean
+  }
+
   // register package commands
   await registerPackageCommands({
     paths,
     commander,
     key: "scripts",
-    action(key, cwd) {
+    resolveOptions(command) {
+      command.option("-i, --install", "with install")
+      command.option("-r, --reinstall", "with reinstall", {
+        conflicts: [`install`],
+      })
+    },
+    async action(key, cwd, options: PackageCommandOptions) {
+      if (options.install) {
+        await _install(pm)
+      }
+      if (options.reinstall) {
+        // clean cache and node_modules
+        await cleanWorkspaces(pm, [...cacheDirs, "node_modules"])
+        // reinstall
+        await _install(pm)
+      }
       return execa([pm, "run", key], cwd)
     },
   })
@@ -233,14 +255,14 @@ interface RegisterPackageCommandsOptions {
   paths: string[]
   key: string
   commander: Command
-
-  action(key: string, cwd: string): unknown
+  resolveOptions?: (command: Command) => unknown
+  action(key: string, cwd: string, options: unknown): unknown
 }
 
 async function registerPackageCommands(
   options: RegisterPackageCommandsOptions,
 ) {
-  const { paths, key, commander, action } = options
+  const { paths, key, commander, action, resolveOptions = noop } = options
 
   const root = paths[0]
   const count = useCount()
@@ -257,9 +279,15 @@ async function registerPackageCommands(
         const description = isRoot
           ? `${gray(cv)}`
           : `${gray(cv)} ${dim(yellow(`→ ${workspace}`))}`
-        const runCommand = new Command().alias(String(count())).description(
-          description,
-        ).action(() => action(ck, cwd))
+
+        const runCommand = new Command().alias(String(count()))
+
+        runCommand.description(description)
+
+        resolveOptions(runCommand)
+
+        runCommand.action((options) => action(ck, cwd, options))
+
         const mck = isRoot ? ck : `${workspace.replaceAll("/", ":")}:${ck}`
         if (commandSet.has(mck)) {
           return
