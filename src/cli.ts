@@ -39,7 +39,6 @@ export async function action(pm: PM) {
 
   const workspaces = await loadWorkspaces(pm)
   const paths = workspaces.map((w) => join(w, "package.json"))
-  // TODO 允许扩展 options
 
   interface PackageCommandOptions {
     install?: boolean
