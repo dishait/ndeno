@@ -1,103 +1,95 @@
-import { basename } from "https://deno.land/std@0.212.0/path/basename.ts"
-import { execa } from "./process.ts"
-import { locks, type PM } from "./constant.ts"
-import { existsFile, findUp } from "./fs.ts"
-import { parse } from "https://deno.land/std@0.212.0/yaml/parse.ts"
+import { expandGlob } from "https://deno.land/std@0.212.0/fs/expand_glob.ts"
+import { isAbsolute } from "https://deno.land/std@0.212.0/path/is_absolute.ts"
 import { isGlob } from "https://deno.land/std@0.212.0/path/is_glob.ts"
 import { resolve } from "https://deno.land/std@0.212.0/path/resolve.ts"
-import { isAbsolute } from "https://deno.land/std@0.212.0/path/is_absolute.ts"
-import { expandGlob } from "https://deno.land/std@0.212.0/fs/expand_glob.ts"
+import { relative } from "https://deno.land/std@0.212.0/path/relative.ts"
+import { parse } from "https://deno.land/std@0.212.0/yaml/parse.ts"
+import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
+import { createContext } from "npm:unctx"
+import { execa } from "./process.ts"
+import { find, findUp } from "./fs.ts"
 
-export async function loadPackageCommands(
-  file = "package.json",
-  key = "scripts",
-) {
-  try {
-    const packageText = await Deno.readTextFile(file)
-    const scripts = JSON.parse(packageText)[key] || {}
-    return scripts as Record<string, string>
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return null
-    }
-    if (error instanceof SyntaxError) {
-      return null
-    }
-    throw error
-  }
+export type PmType = "npm" | "yarn" | "pnpm" | "deno"
+
+export type NodePmType = Exclude<PmType, "deno">
+
+export type PmLock = {
+  "deno": "deno.lock"
+  "yarn": "yarn.lock"
+  "pnpm": "pnpm-lock.yaml"
+  "npm": "package-lock.json"
 }
 
-export function install(
-  pm: PM,
-  deps: string[] = [],
-  options: string[] = [],
-) {
-  const isYarn = pm === "yarn"
-  if (isYarn && deps.length === 0) {
-    return execa([pm, ...options])
-  }
-  return execa(
-    [pm, isYarn ? "add" : "install", ...deps, ...options],
-  )
+export type Script = {
+  cwd: string
+  key: string
+  value: string
+  magicKey: string
+  relativedWorkspace?: string
 }
 
-export function unInstall(pm: PM, deps: string[]) {
-  const isNpm = pm === "npm"
-  return execa([pm, isNpm ? "uninstall" : "remove", ...deps])
+export type PmCtx<T extends PmType = "npm"> = {
+  type: T
+  scripts: Script[]
+  workspaces: string[]
+  lockFile: string | null
+  uninstall: (deps: string[]) => Promise<void>
+  install: (deps?: string[], options?: string[]) => Promise<void>
 }
 
-export function getPmFromPath(path: string) {
-  switch (basename(path)) {
-    case "pnpm-lock.yaml":
-      return "pnpm"
-    case "yarn.lock":
-      return "yarn"
-    default:
-      return "npm"
-  }
-}
+const pmCtx = createContext<PmCtx<PmType>>()
 
-export function getLockFromPm(pm: PM) {
-  switch (pm) {
-    case "pnpm":
-      return "pnpm-lock.yaml"
-    case "yarn":
-      return "yarn.lock"
-    default:
-      return "package-lock.json"
-  }
-}
+export const nodePms = ["npm", "pnpm", "yarn"] as const
 
-export async function detectPackageManager() {
-  const lockPath = await findUp(locks)
+export async function initPm(root = Deno.cwd()) {
+  const type = await loadType(root)
 
-  if (!lockPath) {
-    const packageJson = await findUp(["package.json"])
-    if (packageJson && await existsFile(packageJson)) {
-      const packageText = await Deno.readTextFile(packageJson)
-      try {
-        const { packageManager } = JSON.parse(packageText) as {
-          packageManager?: string
-        }
-        if (!packageManager) {
-          return "npm"
-        }
-        return packageManager.split("@")[0] as "npm" | "pnpm" | "yarn"
-      } catch (error) {
-        console.log(`detectPackageManager(package.json): ${error}`)
-        return "npm"
+  const workspaces = await loadWorkspaces(type, root)
+
+  const scripts = await loadScriptsWithWorkspaces(type, root, workspaces)
+
+  const lockFile = await findUpLockFile(type, root)
+
+  const ctx: PmCtx<PmType> = {
+    type,
+    scripts,
+    lockFile,
+    workspaces,
+    async uninstall(deps: string[]) {
+      if (this.type === "deno" || deps.length === 0) {
+        return
       }
-    }
+      const isNpm = this.type === "npm"
+      await execa([this.type, isNpm ? "uninstall" : "remove", ...deps])
+      return
+    },
+    async install(deps: string[] = [], options: string[] = []) {
+      if (this.type === "deno") {
+        return
+      }
+      const isYarn = this.type === "yarn"
+      if (isYarn && deps.length === 0) {
+        await execa([ctx.type, ...options])
+        return
+      }
+      await execa(
+        [ctx.type, isYarn ? "add" : "install", ...deps, ...options],
+      )
+      return
+    },
   }
 
-  return getPmFromPath(lockPath ?? "")
+  pmCtx.set(ctx)
 }
 
-export async function loadWorkspaces(pm: PM) {
-  const root = Deno.cwd()
+export function usePm() {
+  return pmCtx.use()
+}
+
+export async function loadWorkspaces(pm: PmType, root = Deno.cwd()) {
   const dirs = [root]
   if (pm !== "pnpm") {
-    return dirs
+    return dirs.map(slash)
   }
 
   try {
@@ -127,11 +119,146 @@ export async function loadWorkspaces(pm: PM) {
       dirs.push(resolve(root, p))
     }
 
-    return Array.from(new Set(dirs))
+    return Array.from(new Set(dirs)).map(slash)
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
-      return dirs
+      return dirs.map(slash)
     }
     throw error
   }
+}
+
+export async function loadScriptMap(file: string, key: string) {
+  const scriptsMap = new Map<string, string>()
+  try {
+    const packageText = await Deno.readTextFile(file)
+    const scripts: Record<string, string> = JSON.parse(packageText)[key] || {}
+    Object.entries(scripts).forEach(([key, script]) => {
+      scriptsMap.set(key, script)
+    })
+    return scriptsMap
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return scriptsMap
+    }
+    if (error instanceof SyntaxError) {
+      return scriptsMap
+    }
+    throw error
+  }
+}
+
+export async function loadScriptsWithWorkspaces(
+  pm: PmType,
+  root: string = Deno.cwd(),
+  workspaces: string[],
+) {
+  const scripts: Script[] = []
+  const scriptSet = new Set<string>()
+
+  if (pm === "deno") {
+    for (const workspace of workspaces) {
+      const file = await find(["deno.jsonc", "deno.json"], workspace)
+      if (!file) {
+        continue
+      }
+      await loadScript(workspace, file, "tasks")
+    }
+    return scripts
+  }
+
+  for (const workspace of workspaces) {
+    const file = resolve(workspace, "package.json")
+    await loadScript(workspace, file, "scripts")
+  }
+
+  return scripts
+
+  async function loadScript(workspace: string, file: string, key: string) {
+    const isRoot = slash(workspace) === slash(root)
+    const relativedWorkspace = isRoot ? "" : slash(relative(root, workspace))
+
+    const scriptMap = await loadScriptMap(file, key)
+    scriptMap.forEach((v, k) => {
+      const magicKey = isRoot
+        ? k
+        : `${relativedWorkspace.replaceAll("/", ":")}:${k}`
+      if (scriptSet.has(magicKey)) {
+        return
+      }
+      scripts.push({
+        key: k,
+        magicKey,
+        value: v,
+        cwd: workspace,
+        relativedWorkspace,
+      })
+      scriptSet.add(magicKey)
+    })
+  }
+}
+
+export async function loadType(root = Deno.cwd()) {
+  const file = await findUp([
+    "deno.jsonc",
+    "deno.json",
+    "deno.lock",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "package-lock.json",
+    "package.json",
+  ], root)
+
+  if (!file) {
+    throw new Deno.errors.NotFound("loadType error")
+  }
+
+  if (["deno.jsonc", "deno.json", "deno.lock"].some((f) => file.endsWith(f))) {
+    return "deno"
+  }
+
+  if (file.endsWith("pnpm-lock.yaml")) {
+    return "pnpm"
+  }
+
+  if (file.endsWith("yarn.lock")) {
+    return "yarn"
+  }
+
+  if (file.endsWith("package.json")) {
+    const packageText = await Deno.readTextFile(file)
+    try {
+      const { packageManager } = JSON.parse(packageText) as {
+        packageManager?: string
+      }
+      if (!packageManager) {
+        return "npm"
+      }
+      return packageManager.split("@")[0] as "npm" | "pnpm" | "yarn"
+    } catch (error) {
+      console.log(`detectPackageManager(package.json): ${error}`)
+      return "npm"
+    }
+  }
+
+  return "npm"
+}
+
+export function getLockFromPm(pm: PmType) {
+  switch (pm) {
+    case "deno":
+      return "deno.lock"
+    case "pnpm":
+      return "pnpm-lock.yaml"
+    case "yarn":
+      return "yarn.lock"
+    case "npm":
+      return "package-lock.json"
+    default:
+      return "package-lock.json"
+  }
+}
+
+export function findUpLockFile(type: PmType, root = Deno.cwd()) {
+  return findUp([getLockFromPm(type)], root)
 }

@@ -9,47 +9,26 @@ import {
 import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
 import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-import { execa } from "./process.ts"
 
 import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
 import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
-import { cacheDirs, description, locks, type PM, pms } from "./constant.ts"
-import {
-  cleanWorkspaces,
-  existsFile,
-  findUp,
-  findUpDenoConfigFile,
-} from "./fs.ts"
-import {
-  getLockFromPm,
-  install as _install,
-  loadPackageCommands,
-  loadWorkspaces,
-  unInstall as _uninstall,
-} from "./pm.ts"
+import { cacheDirs, description } from "./constant.ts"
+import { cleanWorkspaces, existsFile } from "./fs.ts"
+import { getLockFromPm, nodePms, type PmType, usePm } from "./pm.ts"
+import { execa } from "./process.ts"
 import { version } from "./version.ts"
-import { join } from "https://deno.land/std@0.212.0/path/join.ts"
-import { dirname } from "https://deno.land/std@0.209.0/path/dirname.ts"
-import { relative } from "https://deno.land/std@0.209.0/path/relative.ts"
-import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
-import { noop, useCount } from "https://deno.land/x/easy_std@v0.7.0/src/fn.ts"
 
-export async function action(pm: PM) {
+export async function action() {
+  const pm = usePm()
   const commander = createMainCommander()
-
-  const workspaces = await loadWorkspaces(pm)
-  const paths = workspaces.map((w) => join(w, "package.json"))
 
   interface PackageCommandOptions {
     install?: boolean
     reinstall?: boolean
   }
 
-  // register package commands
-  await registerPackageCommands({
-    paths,
+  registerScripts({
     commander,
-    key: "scripts",
     resolveOptions(command) {
       command.option("-i, --install", "with install")
       command.option("-r, --reinstall", "with reinstall", {
@@ -58,21 +37,21 @@ export async function action(pm: PM) {
     },
     async action(key, cwd, options: PackageCommandOptions) {
       if (options.install) {
-        await _install(pm)
+        await pm.install()
       }
       if (options.reinstall) {
         // clean cache and node_modules
-        await cleanWorkspaces(pm, [...cacheDirs, "node_modules"])
+        await cleanWorkspaces(pm.workspaces, [...cacheDirs, "node_modules"])
         // reinstall
-        await _install(pm)
+        await pm.install()
       }
-      return execa([pm, "run", key], cwd)
+      return execa([pm.type, "run", key], cwd)
     },
   })
 
   const install = new Command()
     .alias("install")
-    .description(`${brightGreen(pm)} install deps`)
+    .description(`${brightGreen(pm.type)} install deps`)
     .option("-g, --global", "Global installation")
     .option("-C, --dir <dir:string>", "Change to directory <dir>")
     .option(
@@ -103,11 +82,11 @@ export async function action(pm: PM) {
     .option("-f, --force", "force install deps")
     .arguments("[...deps:string]")
     .action(
-      (options, ...deps) => _install(pm, deps, formatOptions(options)),
+      (options, ...deps) => pm.install(deps, formatOptions(options)),
     )
 
   const reinstall = new Command().alias("reinstall")
-    .description(`${brightGreen(pm)} reinstall deps`).option(
+    .description(`${brightGreen(pm.type)} reinstall deps`).option(
       "-w, --withLock",
       "with lock",
       {
@@ -116,33 +95,29 @@ export async function action(pm: PM) {
     ).action(
       async ({ withLock }) => {
         // empty lock
-        if (withLock) {
-          const lockPath = await findUp(locks)
-          if (lockPath) {
-            await Deno.writeFile(lockPath, new Uint8Array())
-          }
+        if (withLock && pm.lockFile) {
+          await Deno.writeFile(pm.lockFile, new Uint8Array())
         }
 
         // clean cache and node_modules
-        await cleanWorkspaces(pm, [...cacheDirs, "node_modules"])
+        await cleanWorkspaces(pm.workspaces, [...cacheDirs, "node_modules"])
 
         // reinstall
-        await _install(pm)
+        await pm.install()
       },
     )
 
-  const pm_type = new EnumType<PM>(pms)
+  const pm_type = new EnumType<PmType>(nodePms)
   const _switch = new Command().alias("switch").description(
-    `switch ${brightGreen(pm)} to ${
-      pms.filter((p) => p !== pm).map((p) => yellow(p)).join(" or ")
+    `switch ${brightGreen(pm.type)} to ${
+      nodePms.filter((p) => p !== pm.type).map((p) => yellow(p)).join(" or ")
     }`,
   ).type(
     "pm_type",
     pm_type,
   ).arguments("<pm:pm_type>").action(async (_, newPm) => {
-    const existedLock = getLockFromPm(pm)
-    if (await existsFile(existedLock)) {
-      await Deno.remove(existedLock)
+    if (pm.lockFile) {
+      await Deno.remove(pm.lockFile)
     }
     const newLock = getLockFromPm(newPm)
     await ensureFile(newLock)
@@ -183,12 +158,12 @@ export async function action(pm: PM) {
     })
 
   const uninstall = new Command().alias("uninstall").alias("rm").description(
-    `${brightGreen(pm)} uninstall deps`,
-  ).arguments("<...deps:string>").action((_, ...deps) => _uninstall(pm, deps))
+    `${brightGreen(pm.type)} uninstall deps`,
+  ).arguments("<...deps:string>").action((_, ...deps) => pm.uninstall(deps))
 
-  const clean = new Command().alias("clean").description(
-    `clean cache`,
-  ).action(() => cleanWorkspaces(pm, cacheDirs))
+  const clean = new Command().alias("clean").description(`clean cache`).action(
+    () => cleanWorkspaces(pm.workspaces, cacheDirs),
+  )
 
   await commander
     .command("cl", clean)
@@ -203,13 +178,8 @@ export async function action(pm: PM) {
 export async function denoAction() {
   const commander = createMainCommander()
 
-  const path = await findUpDenoConfigFile()
-
-  // register task commands
-  await registerPackageCommands({
+  registerScripts({
     commander,
-    paths: [path!],
-    key: "tasks",
     action(key, cwd) {
       return execa(["deno", "task", key], cwd)
     },
@@ -250,50 +220,32 @@ function formatOptions(originOptions: Record<string, string | boolean>) {
   })
 }
 
-interface RegisterPackageCommandsOptions {
-  paths: string[]
-  key: string
+interface ScriptsOptions {
   commander: Command
   resolveOptions?: (command: Command) => unknown
   action(key: string, cwd: string, options: unknown): unknown
 }
 
-async function registerPackageCommands(
-  options: RegisterPackageCommandsOptions,
+function registerScripts(
+  options: ScriptsOptions,
 ) {
-  const { paths, key, commander, action, resolveOptions = noop } = options
+  const pm = usePm()
+  const { commander, action, resolveOptions = () => {} } = options
+  for (let i = 0; i < pm.scripts.length; i++) {
+    const script = pm.scripts[i]
+    const isRoot = pm.workspaces[0] === script.cwd
 
-  const root = paths[0]
-  const count = useCount()
-  const commandSet = new Set<string>()
-  for (let i = 0; i < paths.length; i++) {
-    const path = paths[i]
-    const isRoot = i === 0
-    const cwd = dirname(path)
-    const packageCommands = await loadPackageCommands(path, key)
-    if (packageCommands) {
-      const workspace = isRoot ? "" : slash(relative(dirname(root), cwd))
-      Object.keys(packageCommands).forEach((ck) => {
-        const cv = packageCommands[ck]
-        const description = isRoot
-          ? `${gray(cv)}`
-          : `${gray(cv)} ${dim(yellow(`→ ${workspace}`))}`
+    const description = isRoot
+      ? `${gray(script.value)}`
+      : `${gray(script.value)} ${dim(yellow(`→ ${script.relativedWorkspace}`))}`
+    const runCommand = new Command().alias(String(i))
 
-        const runCommand = new Command().alias(String(count()))
+    runCommand.description(description)
 
-        runCommand.description(description)
+    resolveOptions(runCommand)
 
-        resolveOptions(runCommand)
+    runCommand.action((options) => action(script.key, script.cwd, options))
 
-        runCommand.action((options) => action(ck, cwd, options))
-
-        const mck = isRoot ? ck : `${workspace.replaceAll("/", ":")}:${ck}`
-        if (commandSet.has(mck)) {
-          return
-        }
-        commander.command(mck, runCommand)
-        commandSet.add(mck)
-      })
-    }
+    commander.command(script.magicKey, runCommand)
   }
 }

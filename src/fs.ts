@@ -1,12 +1,12 @@
 import { logClean } from "./log.ts"
-import type { PM } from "./constant.ts"
-import { loadWorkspaces } from "./pm.ts"
-import { denoConfigFiles } from "./constant.ts"
 import { join } from "https://deno.land/std@0.212.0/path/mod.ts"
 import { exists } from "https://deno.land/std@0.212.0/fs/exists.ts"
 import { resolve } from "https://deno.land/std@0.212.0/path/resolve.ts"
 import { emptyDir } from "https://deno.land/std@0.212.0/fs/empty_dir.ts"
-import { createUpBases } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
+import {
+  createUpBases,
+  slash,
+} from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
 import { isAbsolute } from "https://deno.land/std@0.212.0/path/is_absolute.ts"
 
 export function existsFile(path: string) {
@@ -16,14 +16,13 @@ export function existsFile(path: string) {
   })
 }
 
-const upPaths = createUpBases()
-
-export async function findUp(files: string[]) {
+export async function findUp(files: string[], root = Deno.cwd()) {
+  const upPaths = createUpBases(root)
   for (const upPath of upPaths) {
     for (const file of files) {
       const path = join(upPath, file)
       if (await exists(path)) {
-        return path
+        return slash(path)
       }
     }
   }
@@ -45,20 +44,18 @@ export async function cleanDirs(dirs: Array<string | null>, root = Deno.cwd()) {
   }))
 }
 
-export async function cleanWorkspaces(pm: PM, dirs: string[]) {
-  const workspaces = await loadWorkspaces(pm)
+export async function find(files: string[], root = Deno.cwd()) {
+  for (const file of files) {
+    const resolvedFile = resolve(root, file)
+    if (await existsFile(file)) {
+      return resolvedFile
+    }
+  }
+  return null
+}
 
+export async function cleanWorkspaces(workspaces: string[], dirs: string[]) {
   await Promise.all(
     workspaces.map((workspace) => cleanDirs(dirs, workspace)),
   )
-}
-
-export async function findUpDenoConfigFile() {
-  const path = await findUp(denoConfigFiles)
-  return path
-}
-
-export async function isDenoProject() {
-  const path = await findUpDenoConfigFile()
-  return Boolean(path)
 }
