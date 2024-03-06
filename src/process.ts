@@ -1,5 +1,4 @@
-import { runtime } from "npm:std-env@3.7.0"
-import { execa as denoExeca } from "https://deno.land/x/easy_std@v0.7.0/src/process.ts"
+import { denoExeca, runtime } from "./deps.ts"
 
 export async function execa(cmd: string[], cwd?: string) {
   if (runtime === "deno") {

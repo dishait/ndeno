@@ -1,13 +1,6 @@
-import { expandGlob } from "https://deno.land/std@0.212.0/fs/expand_glob.ts"
-import { isAbsolute } from "https://deno.land/std@0.212.0/path/is_absolute.ts"
-import { isGlob } from "https://deno.land/std@0.212.0/path/is_glob.ts"
-import { resolve } from "https://deno.land/std@0.212.0/path/resolve.ts"
-import { relative } from "https://deno.land/std@0.212.0/path/relative.ts"
-import { parse } from "https://deno.land/std@0.212.0/yaml/parse.ts"
-import { slash } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
-import { createContext } from "npm:unctx"
+import { createContext, relative, resolve, slash } from "./deps.ts"
 import { execa } from "./process.ts"
-import { find, findUp } from "./fs.ts"
+import { find, findUp } from "./find.ts"
 
 export type PmType = "npm" | "yarn" | "pnpm" | "deno"
 
@@ -69,11 +62,11 @@ export async function initPm(root = Deno.cwd()) {
       }
       const isYarn = this.type === "yarn"
       if (isYarn && deps.length === 0) {
-        await execa([ctx.type, ...options])
+        await execa([this.type, ...options])
         return
       }
       await execa(
-        [ctx.type, isYarn ? "add" : "install", ...deps, ...options],
+        [this.type, isYarn ? "add" : "install", ...deps, ...options],
       )
       return
     },

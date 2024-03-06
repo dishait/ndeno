@@ -1,19 +1,19 @@
+import { cacheDirs, description } from "./constant.ts"
+import { cleanWorkspaces } from "./clean.ts"
 import {
   brightGreen,
   brightYellow,
+  Command,
   dim,
+  ensureFile,
+  EnumType,
   gray,
+  paramCase,
   red,
+  resolve,
   yellow,
-} from "https://deno.land/std@0.209.0/fmt/colors.ts"
-import { ensureFile } from "https://deno.land/std@0.209.0/fs/ensure_file.ts"
-import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
-import { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
-
-import { resolve } from "https://deno.land/std@0.209.0/path/resolve.ts"
-import paramCase from "https://deno.land/x/case@2.2.0/paramCase.ts"
-import { cacheDirs, description } from "./constant.ts"
-import { cleanWorkspaces, existsFile } from "./fs.ts"
+} from "./deps.ts"
+import { existsFile } from "./find.ts"
 import { getLockFromPm, nodePms, type PmType, usePm } from "./pm.ts"
 import { execa } from "./process.ts"
 import { version } from "./version.ts"
@@ -41,7 +41,7 @@ export async function action() {
       }
       if (options.reinstall) {
         // clean cache and node_modules
-        await cleanWorkspaces(pm.workspaces, [...cacheDirs, "node_modules"])
+        await cleanWorkspaces([...cacheDirs, "node_modules"])
         // reinstall
         await pm.install()
       }
@@ -100,7 +100,7 @@ export async function action() {
         }
 
         // clean cache and node_modules
-        await cleanWorkspaces(pm.workspaces, [...cacheDirs, "node_modules"])
+        await cleanWorkspaces([...cacheDirs, "node_modules"])
 
         // reinstall
         await pm.install()
@@ -162,7 +162,7 @@ export async function action() {
   ).arguments("<...deps:string>").action((_, ...deps) => pm.uninstall(deps))
 
   const clean = new Command().alias("clean").description(`clean cache`).action(
-    () => cleanWorkspaces(pm.workspaces, cacheDirs),
+    () => cleanWorkspaces(),
   )
 
   await commander

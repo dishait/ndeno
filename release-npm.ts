@@ -1,13 +1,13 @@
 import { version } from "./src/version.ts"
 import { description } from "./src/constant.ts"
-import * as esbuild from "https://deno.land/x/esbuild@v0.19.11/mod.js"
-import { build, emptyDir } from "https://deno.land/x/dnt@0.39.0/mod.ts"
+import * as esbuild from "https://deno.land/x/esbuild@v0.20.1/mod.js"
+import { build, emptyDir } from "https://deno.land/x/dnt@0.40.0/mod.ts"
 import { execa } from "https://deno.land/x/easy_std@v0.7.0/src/process.ts"
 import {
   dirname,
   fromFileUrl,
   resolve,
-} from "https://deno.land/std@0.212.0/path/mod.ts"
+} from "https://deno.land/std@0.218.2/path/mod.ts"
 
 const npm = resolve(dirname(fromFileUrl(import.meta.url)), "npm")
 
@@ -80,7 +80,7 @@ async function sanitiseDeps() {
       if (packageJson["devDependencies"]) {
         packageJson["devDependencies"] = Object.assign(
           packageJson["devDependencies"],
-          dependencies
+          dependencies,
         )
       }
       delete packageJson[key]
@@ -90,7 +90,7 @@ async function sanitiseDeps() {
 
   await Deno.writeTextFile(
     packageJsonPath,
-    JSON.stringify(packageJson, null, 2)
+    JSON.stringify(packageJson, null, 2),
   )
 
   await execa(["npm", "install"], {

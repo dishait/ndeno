@@ -1,3 +1,6 @@
+export const description =
+  "js runtime project management tool | js runtime 项目管理命令工具"
+
 export const cacheDirs = [
   "dist",
   ".nuxt",
@@ -9,6 +12,3 @@ export const cacheDirs = [
   ".cache",
   "docs/.vitepress/cache",
 ]
-
-export const description =
-  "js runtime project management tool | js runtime 项目管理命令工具"
