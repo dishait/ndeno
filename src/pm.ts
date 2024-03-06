@@ -1,6 +1,18 @@
-import { createContext, relative, resolve, slash } from "./deps.ts"
+import {
+  createContext,
+  exists,
+  expandGlob,
+  isAbsolute,
+  isGlob,
+  join,
+  parse,
+  relative,
+  resolve,
+  slash,
+} from "./deps.ts"
 import { execa } from "./process.ts"
 import { find, findUp } from "./find.ts"
+import { createUpBases } from "./deps.ts"
 
 export type PmType = "npm" | "yarn" | "pnpm" | "deno"
 
@@ -192,45 +204,27 @@ export async function loadScriptsWithWorkspaces(
 }
 
 export async function loadType(root = Deno.cwd()) {
-  const file = await findUp([
+  const bases = createUpBases(root)
+
+  const files = [
+    "package.json",
     "deno.jsonc",
     "deno.json",
     "deno.lock",
     "pnpm-lock.yaml",
     "yarn.lock",
     "package-lock.json",
-    "package.json",
-  ], root)
+  ]
 
-  if (!file) {
-    throw new Deno.errors.NotFound("loadType error")
-  }
-
-  if (["deno.jsonc", "deno.json", "deno.lock"].some((f) => file.endsWith(f))) {
-    return "deno"
-  }
-
-  if (file.endsWith("pnpm-lock.yaml")) {
-    return "pnpm"
-  }
-
-  if (file.endsWith("yarn.lock")) {
-    return "yarn"
-  }
-
-  if (file.endsWith("package.json")) {
-    const packageText = await Deno.readTextFile(file)
-    try {
-      const { packageManager } = JSON.parse(packageText) as {
-        packageManager?: string
+  for (const base of bases) {
+    for (const file of files) {
+      const path = join(base, file)
+      if (await exists(path)) {
+        const type = await getTypeFormFile(file)
+        if (type) {
+          return type
+        }
       }
-      if (!packageManager) {
-        return "npm"
-      }
-      return packageManager.split("@")[0] as "npm" | "pnpm" | "yarn"
-    } catch (error) {
-      console.log(`detectPackageManager(package.json): ${error}`)
-      return "npm"
     }
   }
 
@@ -254,4 +248,35 @@ export function getLockFromPm(pm: PmType) {
 
 export function findUpLockFile(type: PmType, root = Deno.cwd()) {
   return findUp([getLockFromPm(type)], root)
+}
+
+export async function getTypeFormFile(file: string) {
+  if (file.endsWith("package.json")) {
+    const packageText = await Deno.readTextFile(file)
+    try {
+      const { packageManager } = JSON.parse(packageText) as {
+        packageManager?: string
+      } ?? {}
+      if (packageManager) {
+        return packageManager.split("@")[0] as NodePmType
+      }
+    } catch (error) {
+      console.warn(`detectPackageManager(package.json): ${error}`)
+    }
+  }
+
+  const denoFiles = ["deno.jsonc", "deno.json", "deno.lock"]
+  if (denoFiles.some((f) => file.endsWith(f))) {
+    return "deno"
+  }
+
+  if (file.endsWith("pnpm-lock.yaml")) {
+    return "pnpm"
+  }
+
+  if (file.endsWith("yarn.lock")) {
+    return "yarn"
+  }
+
+  return null
 }

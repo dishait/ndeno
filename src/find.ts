@@ -8,10 +8,10 @@ export function existsFile(path: string) {
 }
 
 export async function findUp(files: string[], root = Deno.cwd()) {
-  const upPaths = createUpBases(root)
-  for (const upPath of upPaths) {
+  const bases = createUpBases(root)
+  for (const base of bases) {
     for (const file of files) {
-      const path = join(upPath, file)
+      const path = join(base, file)
       if (await exists(path)) {
         return slash(path)
       }
