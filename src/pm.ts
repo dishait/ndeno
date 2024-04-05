@@ -14,9 +14,9 @@ import { execa } from "./process.ts"
 import { find, findUp } from "./find.ts"
 import { createUpBases } from "./deps.ts"
 
-export type PmType = "npm" | "yarn" | "pnpm" | "deno"
+export type PmType = "npm" | "yarn" | "pnpm" | "deno" | "bun"
 
-export type NodePmType = Exclude<PmType, "deno">
+export type NodePmType = Exclude<PmType, "deno" | "bun">
 
 export type PmLock = {
   "deno": "deno.lock"
@@ -44,7 +44,7 @@ export type PmCtx<T extends PmType = "npm"> = {
 
 const pmCtx = createContext<PmCtx<PmType>>()
 
-export const nodePms = ["npm", "pnpm", "yarn"] as const
+export const nodePms = ["npm", "pnpm", "yarn", "bun"] as const
 
 export async function initPm(root = Deno.cwd()) {
   const type = await loadType(root)
@@ -211,6 +211,7 @@ export async function loadType(root = Deno.cwd()) {
     "deno.jsonc",
     "deno.json",
     "deno.lock",
+    "bun.lockb",
     "pnpm-lock.yaml",
     "yarn.lock",
     "package-lock.json",
@@ -276,6 +277,10 @@ export async function getTypeFormFile(file: string) {
 
   if (file.endsWith("yarn.lock")) {
     return "yarn"
+  }
+
+  if (file.endsWith("bun.lockb")) {
+    return "bun"
   }
 
   return null
