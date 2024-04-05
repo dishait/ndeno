@@ -21,6 +21,7 @@ export type NodePmType = Exclude<PmType, "deno" | "bun">
 export type PmLock = {
   "deno": "deno.lock"
   "yarn": "yarn.lock"
+  "bun": "bun.lockb"
   "pnpm": "pnpm-lock.yaml"
   "npm": "package-lock.json"
 }
@@ -236,6 +237,8 @@ export function getLockFromPm(pm: PmType) {
   switch (pm) {
     case "deno":
       return "deno.lock"
+    case "bun":
+      return "bun.lockb"
     case "pnpm":
       return "pnpm-lock.yaml"
     case "yarn":
