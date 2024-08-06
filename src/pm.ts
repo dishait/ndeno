@@ -1,5 +1,4 @@
 import {
-  createContext,
   exists,
   expandGlob,
   isAbsolute,
@@ -35,7 +34,7 @@ export type PmCtx<T extends PmType = "npm"> = {
   install: (deps?: string[], options?: string[]) => Promise<void>
 }
 
-const pmCtx = createContext<PmCtx<PmType>>()
+let pmCtx: PmCtx<PmType> | null = null
 
 export const nodePms = ["npm", "pnpm", "yarn", "bun"] as const
 
@@ -77,11 +76,15 @@ export async function initPm(root = Deno.cwd()) {
     },
   }
 
-  pmCtx.set(ctx)
+  pmCtx = ctx
+  return ctx
 }
 
 export function usePm() {
-  return pmCtx.use()
+  if (pmCtx === null) {
+    throw new RangeError("Please execute initPm first")
+  }
+  return pmCtx
 }
 
 export async function loadWorkspaces(pm: PmType, root = Deno.cwd()) {

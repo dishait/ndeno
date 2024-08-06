@@ -22,7 +22,6 @@ export {
 } from "https://deno.land/x/easy_std@v0.7.0/src/path.ts"
 
 export { parse } from "https://deno.land/std@0.218.2/yaml/parse.ts"
-export { createContext } from "npm:unctx@2.3.1"
 
 export { runtime } from "npm:std-env@3.7.0"
 export { execa as denoExeca } from "https://deno.land/x/easy_std@v0.7.0/src/process.ts"
