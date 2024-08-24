@@ -6,8 +6,8 @@ export {
   red,
   yellow,
 } from "https://deno.land/std@0.218.2/fmt/colors.ts"
-export { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/command.ts"
-export { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/types/enum.ts"
+export { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/command.ts"
+export { EnumType } from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/types/enum.ts"
 export { default as paramCase } from "https://deno.land/x/case@2.2.0/paramCase.ts"
 
 export {
