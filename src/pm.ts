@@ -80,6 +80,13 @@ export async function initPm(root = Deno.cwd()) {
   return ctx
 }
 
+/**
+ * If used in a programme, destroy manually
+ */
+export function destroyPm() {
+  pmCtx = null
+}
+
 export function usePm() {
   if (pmCtx === null) {
     throw new RangeError("Please execute initPm first")
