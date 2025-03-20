@@ -224,7 +224,7 @@ export async function loadType(root = Deno.cwd()) {
     for (const file of files) {
       const path = join(base, file)
       if (await exists(path)) {
-        const type = await getTypeFormFile(file)
+        const type = await getTypeFormFile(path)
         if (type) {
           return type
         }
